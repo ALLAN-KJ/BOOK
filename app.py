@@ -202,20 +202,20 @@ def chat():
     msg = data['message']
     reply = None
     
-    # Try using Grok LLM first
+    # Check if we have an active OpenAI client for Grok
     if client:
         try:
             response = client.chat.completions.create(
-                model="grok-beta",
+                model="grok-2-latest",
                 messages=[
-                    {"role": "system", "content": "You are the Nexus Oracle, a wise, concise, and helpful tutor for the Grand Tome Theatre. Keep your answers brief (1-3 sentences) and immersive."},
-                    {"role": "user", "content": msg}
+                    {"role": "system", "content": "You are a cryptic, snarky alien named Xeno guarding a repository of programming knowledge. Respond briefly (1-2 sentences)."},
+                    {"role": "user", "content": data['message']}
                 ]
             )
             if response and response.choices:
                 return jsonify({"success": True, "reply": response.choices[0].message.content})
         except Exception as e:
-            print(f"Grok API Error: {e}")
+            print(f"Grok API Error: {e}", flush=True)
             # Fall through to standard fallback logic if LLM fails
 
     # Graceful fallback logic
