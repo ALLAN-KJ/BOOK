@@ -1,8 +1,12 @@
 import os
+from dotenv import load_dotenv
 from flask import Flask, request, jsonify, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from werkzeug.security import generate_password_hash, check_password_hash
+from openai import OpenAI
+
+load_dotenv()
 
 app = Flask(__name__, static_folder='static', static_url_path='')
 
@@ -10,6 +14,15 @@ app = Flask(__name__, static_folder='static', static_url_path='')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///nexus.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JWT_SECRET_KEY'] = 'super-secret-nexus-key-change-in-prod'
+
+# Configure Grok API
+api_key = os.environ.get("GROK_API_KEY")
+client = None
+if api_key:
+    client = OpenAI(
+        api_key=api_key,
+        base_url="https://api.x.ai/v1",
+    )
 
 db = SQLAlchemy(app)
 jwt = JWTManager(app)
@@ -187,12 +200,30 @@ def chat():
     if not data or 'message' not in data:
         return jsonify({"success": False, "message": "Message is required"}), 400
     
-    msg = data['message'].lower()
+    msg = data['message']
     reply = None
     
+    # Try using Grok LLM first
+    if client:
+        try:
+            response = client.chat.completions.create(
+                model="grok-beta",
+                messages=[
+                    {"role": "system", "content": "You are the Nexus Oracle, a wise, concise, and helpful tutor for the Grand Tome Theatre. Keep your answers brief (1-3 sentences) and immersive."},
+                    {"role": "user", "content": msg}
+                ]
+            )
+            if response and response.choices:
+                return jsonify({"success": True, "reply": response.choices[0].message.content})
+        except Exception as e:
+            print(f"Grok API Error: {e}")
+            # Fall through to standard fallback logic if LLM fails
+
+    # Graceful fallback logic
+    msg_lower = msg.lower()
     for r in RESPONSES:
         for keyword in r['k']:
-            if keyword in msg:
+            if keyword in msg_lower:
                 reply = r['r']
                 break
         if reply:
