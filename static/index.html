@@ -21,8 +21,8 @@
     --blue: #6aacf0;
 
     /* Responsive book size — fills viewport nicely on all screens */
-    --book-w: 94vw;
-    --book-h: 94vh;
+    --book-w: min(65vw, 850px);
+    --book-h: min(88vh, 840px);
     /* 4K UHD scale bump */
     --fs-scale: clamp(0.78rem, 1.1vw, 1.4rem);
 }
@@ -310,7 +310,7 @@ body {
     width: var(--book-w);
     height: var(--book-h);
     transform-style: preserve-3d;
-    transform: rotateX(1deg) rotateY(1deg) translateY(2px);
+    transform: rotateX(2deg) rotateY(4deg) translateY(4px);
     will-change: transform;
     pointer-events: auto;
     filter: drop-shadow(0 30px 60px rgba(0, 0, 0, 0.98)) drop-shadow(0 0 40px rgba(176, 38, 255, 0.1));
