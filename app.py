@@ -19,12 +19,36 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
+    
+    def __init__(self, username=None, password_hash=None, **kwargs):
+        if username is not None: kwargs['username'] = username
+        if password_hash is not None: kwargs['password_hash'] = password_hash
+        super(User, self).__init__(**kwargs)
 
 class Progress(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     module_name = db.Column(db.String(100), nullable=False)
     score = db.Column(db.Integer, default=0)
+    
+    def __init__(self, user_id=None, module_name=None, score=0, **kwargs):
+        if user_id is not None: kwargs['user_id'] = user_id
+        if module_name is not None: kwargs['module_name'] = module_name
+        kwargs['score'] = score
+        super(Progress, self).__init__(**kwargs)
+
+class Note(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    title = db.Column(db.String(100), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=db.func.now())
+    
+    def __init__(self, user_id=None, title=None, content=None, **kwargs):
+        if user_id is not None: kwargs['user_id'] = user_id
+        if title is not None: kwargs['title'] = title
+        if content is not None: kwargs['content'] = content
+        super(Note, self).__init__(**kwargs)
 
 RESPONSES = [
     {
@@ -100,20 +124,47 @@ with app.app_context():
 def index():
     return app.send_static_file('index.html')
 
+@app.route('/api/register', methods=['POST'])
+def register():
+    data = request.get_json()
+    if not data or 'username' not in data or 'password' not in data:
+        return jsonify({"success": False, "message": "Username and password are required"}), 400
+    
+    existing_user = User.query.filter_by(username=data['username']).first()
+    if existing_user:
+        return jsonify({"success": False, "message": "Username already exists"}), 409
+        
+    hashed_pw = generate_password_hash(data['password'])
+    new_user = User(username=data['username'], password_hash=hashed_pw)
+    db.session.add(new_user)
+    db.session.commit()
+    
+    # Optional: seed some progress for new user
+    progress_data = [
+        Progress(user_id=new_user.id, module_name='Kali Linux', score=0),
+        Progress(user_id=new_user.id, module_name='IoT Networks', score=0),
+        Progress(user_id=new_user.id, module_name='Adv. Python', score=0),
+        Progress(user_id=new_user.id, module_name='Overall GPA', score=0)
+    ]
+    db.session.add_all(progress_data)
+    db.session.commit()
+    
+    return jsonify({"success": True, "message": "User registered successfully"})
+
 @app.route('/api/login', methods=['POST'])
 def login():
     data = request.get_json()
     if not data or 'password' not in data:
         return jsonify({"success": False, "message": "Password is required"}), 400
     
-    # Authenticate 'allan' directly for this single user app
-    user = User.query.filter_by(username='allan').first()
+    username = data.get('username', 'allan')
+    user = User.query.filter_by(username=username).first()
     
     if user and check_password_hash(user.password_hash, data['password']):
         access_token = create_access_token(identity=user.username)
         return jsonify({"success": True, "token": access_token})
     else:
-        return jsonify({"success": False, "message": "Invalid password"}), 401
+        return jsonify({"success": False, "message": "Invalid username or password"}), 401
 
 @app.route('/api/progress', methods=['GET'])
 @jwt_required()
@@ -152,6 +203,76 @@ def chat():
         fallback_index += 1
         
     return jsonify({"success": True, "reply": reply})
+
+@app.route('/api/notes', methods=['GET'])
+@jwt_required()
+def get_notes():
+    current_user = get_jwt_identity()
+    user = User.query.filter_by(username=current_user).first()
+    if not user:
+        return jsonify({"success": False, "message": "User not found"}), 404
+        
+    notes = Note.query.filter_by(user_id=user.id).order_by(Note.created_at.desc()).all()
+    results = [{"id": n.id, "title": n.title, "content": n.content, "created_at": n.created_at.isoformat()} for n in notes]
+    
+    return jsonify({"success": True, "notes": results})
+
+@app.route('/api/notes', methods=['POST'])
+@jwt_required()
+def create_note():
+    current_user = get_jwt_identity()
+    user = User.query.filter_by(username=current_user).first()
+    if not user:
+        return jsonify({"success": False, "message": "User not found"}), 404
+        
+    data = request.get_json()
+    if not data or 'title' not in data or 'content' not in data:
+        return jsonify({"success": False, "message": "Title and content are required"}), 400
+        
+    new_note = Note(user_id=user.id, title=data['title'], content=data['content'])
+    db.session.add(new_note)
+    db.session.commit()
+    
+    return jsonify({"success": True, "note": {"id": new_note.id, "title": new_note.title, "content": new_note.content, "created_at": new_note.created_at.isoformat()}}), 201
+
+@app.route('/api/notes/<int:note_id>', methods=['PUT'])
+@jwt_required()
+def update_note(note_id):
+    current_user = get_jwt_identity()
+    user = User.query.filter_by(username=current_user).first()
+    if not user:
+        return jsonify({"success": False, "message": "User not found"}), 404
+        
+    note = Note.query.filter_by(id=note_id, user_id=user.id).first()
+    if not note:
+        return jsonify({"success": False, "message": "Note not found"}), 404
+        
+    data = request.get_json()
+    if 'title' in data:
+        note.title = data['title']
+    if 'content' in data:
+        note.content = data['content']
+        
+    db.session.commit()
+    
+    return jsonify({"success": True, "note": {"id": note.id, "title": note.title, "content": note.content, "created_at": note.created_at.isoformat()}})
+
+@app.route('/api/notes/<int:note_id>', methods=['DELETE'])
+@jwt_required()
+def delete_note(note_id):
+    current_user = get_jwt_identity()
+    user = User.query.filter_by(username=current_user).first()
+    if not user:
+        return jsonify({"success": False, "message": "User not found"}), 404
+        
+    note = Note.query.filter_by(id=note_id, user_id=user.id).first()
+    if not note:
+        return jsonify({"success": False, "message": "Note not found"}), 404
+        
+    db.session.delete(note)
+    db.session.commit()
+    
+    return jsonify({"success": True, "message": "Note deleted"})
 
 if __name__ == '__main__':
     print("Starting Nexus Grand Tome Theatre Backend on port 5000...")
