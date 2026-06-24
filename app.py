@@ -13,7 +13,7 @@ app = Flask(__name__, static_folder='static', static_url_path='')
 # Configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///nexus.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['JWT_SECRET_KEY'] = 'super-secret-nexus-key-change-in-prod'
+app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'default-dev-secret-key-fallback')
 
 # Configure Grok API
 api_key = os.environ.get("GROK_API_KEY")
@@ -193,7 +193,6 @@ def get_progress():
     return jsonify({"success": True, "progress": results})
 
 @app.route('/api/chat', methods=['POST'])
-@jwt_required()
 def chat():
     global fallback_index
     data = request.get_json()
