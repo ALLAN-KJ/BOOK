@@ -305,5 +305,14 @@ def delete_note(note_id):
     return jsonify({"success": True, "message": "Note deleted"})
 
 if __name__ == '__main__':
+    import os, webbrowser
+    from threading import Timer
+
+    def open_browser():
+        webbrowser.open_new("http://127.0.0.1:5000")
+
+    if os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
+        Timer(1.5, open_browser).start()
+
     print("Starting Nexus Grand Tome Theatre Backend on port 5000...")
     app.run(debug=True, port=5000)
