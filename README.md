@@ -1,4 +1,3 @@
-# BOOK
 # NEXUS — Grand Tome Theatre
 
 NEXUS is an immersive, interactive learning dashboard built with a visually stunning 3D book interface. It tracks student progress across various modules (like Cybersecurity, IoT Networks, and Advanced Python), features an AI Oracle for study guidance, and includes a "Personal Grimoire" for taking encrypted notes. 

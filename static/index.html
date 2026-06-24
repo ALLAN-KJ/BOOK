@@ -1,0 +1,2395 @@
+< !DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>NEXUS — Grand Tome Theatre</title><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"><script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script><style>* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box
+}
+
+:root {
+    --wine: #3d0715;
+    --wine-mid: #6b1226;
+    --wine-light: #a0203a;
+    --gold: #c9a84c;
+    --gold-bright: #e8c96b;
+    --gold-pale: #f5e8b8;
+    --gold-dim: rgba(201, 168, 76, 0.18);
+    --ink: #020108;
+    --text: #ddd5c8;
+    --text-dim: #8a7e71;
+    --border: rgba(201, 168, 76, 0.22);
+    --green: #4eca7a;
+    --red: #e05070;
+    --blue: #6aacf0;
+
+    /* Responsive book size — fills viewport nicely on all screens */
+    --book-w: min(46vw, 560px);
+    --book-h: min(88vh, 840px);
+    /* 4K UHD scale bump */
+    --fs-scale: clamp(0.78rem, 1.1vw, 1.4rem);
+}
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #020108;
+}
+
+body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+}
+
+#threeCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 0;
+    pointer-events: none;
+    width: 100%;
+    height: 100%;
+}
+
+/* Deep space vignette */
+#vr-frame {
+    position: fixed;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    background: radial-gradient(ellipse 90% 90% at 50% 50%, transparent 30%, rgba(2, 0, 8, 0.95) 100%);
+    box-shadow: inset 0 0 200px rgba(176, 38, 255, 0.08);
+}
+
+#vr-frame::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 95% 92% at 50% 50%, transparent 52%, rgba(2, 1, 8, 0.98) 100%);
+}
+
+#vr-frame::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 1px solid rgba(176, 38, 255, 0.08);
+    box-shadow: inset 0 0 80px rgba(0, 240, 255, 0.04);
+}
+
+/* Scanlines */
+#scanlines {
+    position: fixed;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    opacity: 0.016;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 0, 0, 1) 2px, rgba(0, 0, 0, 1) 4px);
+}
+
+/* HUD */
+#hud-top {
+    position: fixed;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 6;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 1.2s;
+}
+
+#hud-top.show {
+    opacity: 1;
+}
+
+.hl {
+    width: 44px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold));
+}
+
+.hl.r {
+    background: linear-gradient(90deg, var(--gold), transparent);
+}
+
+.ht {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(0.58rem, 0.78vw, 0.95rem);
+    letter-spacing: 0.42em;
+    color: var(--gold);
+    text-transform: uppercase;
+}
+
+#hud-bot {
+    position: fixed;
+    bottom: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 6;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 1.2s 0.5s;
+}
+
+#hud-bot.show {
+    opacity: 1;
+}
+
+.hs {
+    font-size: clamp(0.46rem, 0.62vw, 0.75rem);
+    letter-spacing: 0.2em;
+    color: rgba(201, 168, 76, 0.35);
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.hdot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 5px var(--green);
+    animation: hp 2s ease-in-out infinite;
+}
+
+@keyframes hp {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.3;
+    }
+}
+
+/* HUD corners */
+.hc {
+    position: fixed;
+    z-index: 6;
+    pointer-events: none;
+    width: 20px;
+    height: 20px;
+    opacity: 0;
+    transition: opacity 1.2s 0.9s;
+}
+
+.hc.show {
+    opacity: 1;
+}
+
+.hc::before,
+.hc::after {
+    content: '';
+    position: absolute;
+    background: rgba(201, 168, 76, 0.45);
+}
+
+.hc::before {
+    width: 100%;
+    height: 1px;
+    top: 0;
+}
+
+.hc::after {
+    width: 1px;
+    height: 100%;
+    top: 0;
+}
+
+#hc1 {
+    top: 14px;
+    left: 14px;
+}
+
+#hc2 {
+    top: 14px;
+    right: 14px;
+    transform: scaleX(-1);
+}
+
+#hc3 {
+    bottom: 14px;
+    left: 14px;
+    transform: scaleY(-1);
+}
+
+#hc4 {
+    bottom: 14px;
+    right: 14px;
+    transform: scale(-1);
+}
+
+/* SCENE — pointer-events none, book handles own clicks */
+#scene {
+    position: fixed;
+    inset: 0;
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    perspective: 2800px;
+    perspective-origin: 50% 46%;
+    pointer-events: none;
+}
+
+/* ── RESPONSIVE BREAKPOINTS ── */
+@media(max-width:600px) {
+    :root {
+        --book-w: 93vw;
+        --book-h: 80vh;
+    }
+
+    #book {
+        transform: rotateX(1deg) rotateY(0deg);
+    }
+
+    #book.idle:hover {
+        transform: rotateX(1deg) rotateY(0deg);
+    }
+
+    #alien-wrap {
+        right: 2%;
+        bottom: 5%;
+        transform: scale(0.65);
+        transform-origin: bottom right;
+    }
+
+    .hc,
+    #hud-top,
+    #hud-bot {
+        display: none;
+    }
+
+    .pi {
+        padding: 12px 10px 10px;
+    }
+
+    .ph-t {
+        font-size: clamp(0.9rem, 3.5vw, 1.1rem);
+    }
+}
+
+@media(min-width:601px) and (max-width:1024px) {
+    :root {
+        --book-w: 60vw;
+        --book-h: 83vh;
+    }
+
+    #alien-wrap {
+        right: 3%;
+        bottom: 8%;
+    }
+}
+
+@media(min-width:2560px) {
+    :root {
+        --book-w: 42vw;
+        --book-h: 86vh;
+    }
+
+    .pi {
+        padding: 32px 28px 20px;
+    }
+}
+
+/* BOOK — fills screen on all devices */
+#book {
+    position: relative;
+    width: var(--book-w);
+    height: var(--book-h);
+    transform-style: preserve-3d;
+    transform: rotateX(4deg) rotateY(8deg) translateY(6px);
+    will-change: transform;
+    pointer-events: auto;
+    filter: drop-shadow(0 30px 60px rgba(0, 0, 0, 0.98)) drop-shadow(0 0 40px rgba(176, 38, 255, 0.1));
+}
+
+#book.idle {
+    transition: transform 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+#book.idle:hover {
+    transform: rotateX(2deg) rotateY(3deg) translateY(2px);
+}
+
+.page {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: var(--book-w);
+    height: var(--book-h);
+    transform-origin: left center;
+    transform-style: preserve-3d;
+    will-change: transform;
+}
+
+.face {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden; -webkit-backface-visibility: hidden;
+    border-radius: 1px 7px 7px 1px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.face.back {
+    transform: rotateY(180deg);
+    border-radius: 7px 1px 1px 7px;
+}
+
+.face::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 1px;
+    height: 100%;
+    background: linear-gradient(180deg, transparent, rgba(201, 168, 76, 0.1), rgba(201, 168, 76, 0.05), transparent);
+    pointer-events: none;
+}
+
+.psh {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 26px;
+    height: 100%;
+    background: linear-gradient(90deg, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.08) 65%, transparent);
+    pointer-events: none;
+    z-index: 10;
+}
+
+.psh-r {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 26px;
+    height: 100%;
+    background: linear-gradient(-90deg, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.08) 65%, transparent);
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* COVER */
+.cover {
+    background: linear-gradient(158deg, #5e1020 0%, #3d0715 26%, #170410 56%, #08010c 100%);
+    box-shadow: 6px 0 22px rgba(0, 0, 0, 0.9), inset -2px 0 8px rgba(0, 0, 0, 0.6);
+}
+
+.ctx {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0, 0, 0, 0.04) 3px, rgba(0, 0, 0, 0.04) 4px),
+        repeating-linear-gradient(90deg, transparent, transparent 22px, rgba(255, 255, 255, 0.008) 22px, rgba(255, 255, 255, 0.008) 23px);
+}
+
+.cfr {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    border: 1px solid rgba(201, 168, 76, 0.3);
+}
+
+.cfr::before {
+    content: '';
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    right: 5px;
+    bottom: 5px;
+    border: 1px solid rgba(201, 168, 76, 0.09);
+}
+
+.cfr::after {
+    content: '✦';
+    position: absolute;
+    top: -8px;
+    left: -8px;
+    font-size: clamp(0.56rem, 0.75vw, 0.92rem);
+    color: rgba(201, 168, 76, 0.5);
+}
+
+.cfr-br {
+    position: absolute;
+    bottom: -8px;
+    right: -8px;
+    font-size: clamp(0.56rem, 0.75vw, 0.92rem);
+    color: rgba(201, 168, 76, 0.32);
+}
+
+.cfr-tr {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    font-size: clamp(0.56rem, 0.75vw, 0.92rem);
+    color: rgba(201, 168, 76, 0.32);
+}
+
+.cfr-bl {
+    position: absolute;
+    bottom: -8px;
+    left: -8px;
+    font-size: clamp(0.56rem, 0.75vw, 0.92rem);
+    color: rgba(201, 168, 76, 0.32);
+}
+
+.cin {
+    position: relative;
+    z-index: 2;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 28px 26px;
+    text-align: center;
+}
+
+.crest {
+    width: 46px;
+    height: 46px;
+    border: 1.5px solid var(--gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 14px;
+    rotate: 45deg;
+    box-shadow: 0 0 25px rgba(201, 168, 76, 0.18), inset 0 0 12px rgba(201, 168, 76, 0.05);
+}
+
+.crest-n {
+    rotate: -45deg;
+    font-size: 1.15rem;
+    color: var(--gold-bright);
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+}
+
+.ctit {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2.6rem, 4.5vw, 5.5rem);
+    letter-spacing: 0.2em;
+    color: var(--gold-bright);
+    font-weight: 600;
+    line-height: 1;
+    margin-bottom: 5px;
+    text-shadow: 0 0 45px rgba(201, 168, 76, 0.4), 0 0 90px rgba(201, 168, 76, 0.12), 0 2px 4px rgba(0, 0, 0, 0.9);
+}
+
+.csub {
+    font-size: clamp(0.46rem, 0.62vw, 0.75rem);
+    letter-spacing: 0.38em;
+    text-transform: uppercase;
+    color: var(--gold);
+    opacity: 0.6;
+    margin-bottom: 4px;
+}
+
+.cedt {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 0.7rem;
+    color: rgba(201, 168, 76, 0.38);
+    margin-bottom: 20px;
+}
+
+.cln {
+    width: 50%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    margin: 0 auto 18px;
+}
+
+.cln2 {
+    width: 34%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(201, 168, 76, 0.3), transparent);
+    margin: 10px auto 0;
+}
+
+.team-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border: 1px solid rgba(201, 168, 76, 0.25);
+    margin-bottom: 16px;
+    font-size: clamp(0.5rem, 0.66vw, 0.8rem);
+    letter-spacing: 0.2em;
+    color: rgba(201, 168, 76, 0.6);
+    text-transform: uppercase;
+}
+
+.team-badge span {
+    color: var(--gold);
+    font-size: 0.7rem;
+}
+
+/* LOGIN */
+.la {
+    width: 82%;
+    display: flex;
+    flex-direction: column;
+}
+
+.fl {
+    font-size: clamp(0.46rem, 0.62vw, 0.75rem);
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+}
+
+.fw {
+    margin-bottom: 12px;
+}
+
+.ui {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(201, 168, 76, 0.28);
+    color: var(--text);
+    padding: 6px 0;
+    font-size: 0.8rem;
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+    text-align: center;
+    transition: border-color 0.3s;
+}
+
+.ui:focus {
+    border-bottom-color: var(--gold);
+}
+
+.btu {
+    margin-top: 5px;
+    padding: 11px;
+    width: 100%;
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold-bright);
+    cursor: pointer;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.9rem;
+    letter-spacing: 0.17em;
+    font-style: italic;
+    transition: all 0.38s;
+    text-transform: uppercase;
+    position: relative;
+    z-index: 100;
+}
+
+.btu:hover {
+    background: var(--gold);
+    color: var(--ink);
+    font-style: normal;
+}
+
+.btu:active {
+    transform: scale(0.98);
+}
+
+.btu:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+/* PAGE BG */
+.pbg {
+    background: linear-gradient(168deg, #100912 0%, #0b0710 52%, #080510 100%);
+}
+
+.pbg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.012;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255, 255, 255, 1) 2px, rgba(255, 255, 255, 1) 3px);
+}
+
+/* PAGE INNER */
+.pi {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 18px 16px 12px;
+    position: relative;
+    overflow: hidden;
+}
+
+.pi::before {
+    content: 'NEXUS';
+    position: absolute;
+    bottom: 30px;
+    right: 12px;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 3.2rem;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    color: rgba(201, 168, 76, 0.022);
+    pointer-events: none;
+    user-select: none;
+}
+
+.ph {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 7px;
+    margin-bottom: 11px;
+}
+
+.ph-t {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(0.9rem, 1.2vw, 1.4rem);
+    color: var(--gold-bright);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.ph-tag {
+    font-size: clamp(0.44rem, 0.6vw, 0.72rem);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    padding: 2px 6px;
+    position: relative;
+}
+
+.ph-tag::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    width: 4px;
+    height: 4px;
+    border-top: 1px solid var(--gold);
+    border-left: 1px solid var(--gold);
+}
+
+.ph-tag::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    right: -1px;
+    width: 4px;
+    height: 4px;
+    border-bottom: 1px solid var(--gold);
+    border-right: 1px solid var(--gold);
+}
+
+.tbanner {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 10px;
+    padding: 5px 8px;
+    background: rgba(201, 168, 76, 0.035);
+    border-left: 2px solid var(--gold);
+}
+
+.ticon {
+    font-size: 0.8rem;
+}
+
+.tlbl {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: clamp(0.65rem, 0.85vw, 1.05rem);
+    color: var(--gold);
+    letter-spacing: 0.04em;
+}
+
+.slbl {
+    font-size: clamp(0.44rem, 0.6vw, 0.72rem);
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.slbl::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(201, 168, 76, 0.14), transparent);
+}
+
+.card {
+    background: rgba(201, 168, 76, 0.02);
+    border: 1px solid var(--border);
+    padding: 7px 10px;
+    border-radius: 1px;
+    margin-bottom: 6px;
+    position: relative;
+    overflow: hidden;
+}
+
+.card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(201, 168, 76, 0.1), transparent);
+}
+
+.g2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+
+.g3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 5px;
+    margin-bottom: 6px;
+}
+
+.sc {
+    background: rgba(201, 168, 76, 0.032);
+    border: 1px solid var(--border);
+    padding: 8px 6px;
+    text-align: center;
+}
+
+.sv {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1.2rem, 1.6vw, 1.9rem);
+    color: var(--gold-bright);
+    font-weight: 600;
+    display: block;
+    line-height: 1.1;
+}
+
+.slb {
+    font-size: clamp(0.44rem, 0.6vw, 0.72rem);
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-top: 2px;
+}
+
+.row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.042);
+    font-size: clamp(0.62rem, 0.8vw, 1.0rem);
+}
+
+.row:last-child {
+    border: none;
+}
+
+.rk {
+    color: var(--text-dim);
+}
+
+.rv {
+    color: var(--text);
+}
+
+.rv.g {
+    color: var(--gold);
+}
+
+.rv.w {
+    color: var(--red);
+}
+
+.rv.gr {
+    color: var(--green);
+}
+
+.rv.b {
+    color: var(--blue);
+}
+
+.rv.pill {
+    font-size: clamp(0.5rem, 0.68vw, 0.82rem);
+    border: 1px solid currentColor;
+    padding: 1px 5px;
+    opacity: 0.82;
+}
+
+.pb {
+    height: 3px;
+    background: rgba(255, 255, 255, 0.07);
+    margin-top: 4px;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.pf {
+    height: 100%;
+    background: linear-gradient(90deg, var(--wine-light), var(--gold));
+    border-radius: 2px;
+    position: relative;
+}
+
+.pf::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 6px;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.28);
+    filter: blur(1px);
+}
+
+.pr {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.67rem;
+    margin-top: 7px;
+}
+
+.pnav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+}
+
+.pnb {
+    background: none;
+    border: none;
+    color: var(--gold);
+    cursor: pointer;
+    font-size: clamp(0.5rem, 0.66vw, 0.8rem);
+    letter-spacing: 0.17em;
+    text-transform: uppercase;
+    font-family: 'DM Sans', sans-serif;
+    padding: 3px 2px;
+    transition: all 0.22s;
+    opacity: 0.58;
+}
+
+.pnb:hover {
+    opacity: 1;
+    color: var(--gold-bright);
+    letter-spacing: 0.22em;
+}
+
+.pnp {
+    font-size: clamp(0.46rem, 0.62vw, 0.75rem);
+    color: var(--text-dim);
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+}
+
+.avatar {
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    border: 1.5px solid var(--gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.7rem;
+    color: var(--gold-bright);
+    font-style: italic;
+    margin: 0 auto 10px;
+    background: radial-gradient(circle, rgba(61, 7, 21, 0.7), rgba(28, 2, 8, 0.9));
+    box-shadow: 0 0 18px rgba(201, 168, 76, 0.1), inset 0 0 12px rgba(201, 168, 76, 0.04);
+}
+
+.vstub {
+    width: 100%;
+    height: 102px;
+    background: #000;
+    border: 1px solid rgba(201, 168, 76, 0.18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    margin-bottom: 7px;
+    box-shadow: inset 0 0 28px rgba(201, 168, 76, 0.06);
+}
+
+.vstub::before,
+.vstub::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 9px;
+    background: rgba(0, 0, 0, 0.65);
+}
+
+.vstub::before {
+    top: 0;
+}
+
+.vstub::after {
+    bottom: 0;
+}
+
+.pbtn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1.5px solid var(--gold);
+    background: rgba(61, 7, 21, 0.65);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--gold);
+    font-size: 0.85rem;
+    transition: all 0.2s;
+    z-index: 1;
+    box-shadow: 0 0 18px rgba(201, 168, 76, 0.12);
+}
+
+.pbtn:hover {
+    background: var(--gold);
+    color: var(--ink);
+    transform: scale(1.08);
+}
+
+.vlbl {
+    position: absolute;
+    bottom: 12px;
+    left: 8px;
+    font-size: clamp(0.5rem, 0.66vw, 0.8rem);
+    color: rgba(255, 255, 255, 0.4);
+    z-index: 1;
+}
+
+.vtime {
+    position: absolute;
+    bottom: 12px;
+    right: 8px;
+    font-size: clamp(0.5rem, 0.66vw, 0.8rem);
+    color: rgba(255, 255, 255, 0.3);
+    z-index: 1;
+}
+
+.vprog {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    right: 8px;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 1px;
+    z-index: 1;
+}
+
+.vpbar {
+    width: 35%;
+    height: 100%;
+    background: var(--gold);
+    border-radius: 1px;
+}
+
+.bgh {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 8px;
+    cursor: pointer;
+    font-size: clamp(0.52rem, 0.7vw, 0.85rem);
+    letter-spacing: 0.1em;
+    font-family: 'DM Sans', sans-serif;
+    text-transform: uppercase;
+    transition: all 0.22s;
+}
+
+.bgh:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+}
+
+.bgh.wine {
+    border-color: rgba(160, 32, 58, 0.5);
+    color: var(--wine-light);
+}
+
+.bgh.wine:hover {
+    background: rgba(61, 7, 21, 0.4);
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 0.54rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 1px;
+}
+
+.badge.green {
+    background: rgba(78, 202, 122, 0.1);
+    border: 1px solid rgba(78, 202, 122, 0.28);
+    color: var(--green);
+}
+
+.badge.red {
+    background: rgba(224, 80, 112, 0.1);
+    border: 1px solid rgba(224, 80, 112, 0.28);
+    color: var(--red);
+}
+
+.badge.gold {
+    background: rgba(201, 168, 76, 0.1);
+    border: 1px solid rgba(201, 168, 76, 0.28);
+    color: var(--gold);
+}
+
+.badge.blue {
+    background: rgba(106, 172, 240, 0.1);
+    border: 1px solid rgba(106, 172, 240, 0.28);
+    color: var(--blue);
+}
+
+.tline {
+    position: relative;
+    padding-left: 12px;
+    margin-top: 2px;
+}
+
+.tline::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 5px;
+    bottom: 5px;
+    width: 1px;
+    background: linear-gradient(180deg, var(--gold), rgba(201, 168, 76, 0.08));
+}
+
+.titem {
+    position: relative;
+    margin-bottom: 6px;
+    font-size: clamp(0.58rem, 0.78vw, 0.95rem);
+}
+
+.titem::before {
+    content: '';
+    position: absolute;
+    left: -15px;
+    top: 5px;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--wine-light);
+    border: 1px solid var(--gold);
+    box-shadow: 0 0 5px rgba(201, 168, 76, 0.28);
+}
+
+.titem-t {
+    color: var(--text);
+    font-weight: 500;
+    margin-bottom: 1px;
+}
+
+.titem-s {
+    color: var(--text-dim);
+    font-size: clamp(0.52rem, 0.7vw, 0.85rem);
+}
+
+.cbar {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 5px;
+    font-size: clamp(0.56rem, 0.75vw, 0.92rem);
+}
+
+.cbar-l {
+    width: 68px;
+    color: var(--text-dim);
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.cbar-t {
+    flex: 1;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.055);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.cbar-f {
+    height: 100%;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--wine-light), var(--gold-bright));
+}
+
+.cbar-v {
+    width: 26px;
+    color: var(--gold);
+    font-size: clamp(0.54rem, 0.72vw, 0.88rem);
+    text-align: right;
+}
+
+.cert-card {
+    border: 1px solid rgba(201, 168, 76, 0.28);
+    padding: 12px;
+    text-align: center;
+    background: radial-gradient(ellipse at center, rgba(61, 7, 21, 0.38), rgba(0, 0, 0, 0.18));
+    position: relative;
+}
+
+.cert-card::before,
+.cert-card::after {
+    content: '';
+    position: absolute;
+    left: 5px;
+    right: 5px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(201, 168, 76, 0.28), transparent);
+}
+
+.cert-card::before {
+    top: 5px;
+}
+
+.cert-card::after {
+    bottom: 5px;
+}
+
+.ann {
+    border-left: 3px solid var(--wine-light);
+    padding: 8px 10px;
+    background: rgba(61, 7, 21, 0.22);
+    margin-bottom: 7px;
+}
+
+.sec-ring {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 2px solid var(--green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 7px;
+    box-shadow: 0 0 14px rgba(78, 202, 122, 0.18), inset 0 0 10px rgba(78, 202, 122, 0.04);
+}
+
+/* CHAT */
+.cscroll {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding-right: 3px;
+    margin-bottom: 7px;
+    min-height: 0;
+}
+
+.cscroll::-webkit-scrollbar {
+    width: 2px;
+}
+
+.cscroll::-webkit-scrollbar-thumb {
+    background: rgba(201, 168, 76, 0.18);
+}
+
+.bbl {
+    max-width: 90%;
+    padding: 7px 11px;
+    font-size: clamp(0.62rem, 0.8vw, 1.0rem);
+    line-height: 1.55;
+    border-radius: 1px;
+}
+
+.bbl.ai {
+    background: rgba(61, 7, 21, 0.45);
+    border: 1px solid rgba(160, 32, 58, 0.26);
+    align-self: flex-start;
+    color: var(--text);
+}
+
+.bbl.usr {
+    background: rgba(201, 168, 76, 0.07);
+    border: 1px solid rgba(201, 168, 76, 0.2);
+    align-self: flex-end;
+    color: var(--gold-pale);
+}
+
+.crow {
+    display: flex;
+    gap: 5px;
+    border-top: 1px solid var(--border);
+    padding-top: 8px;
+    align-items: center;
+}
+
+.cinp {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-size: clamp(0.62rem, 0.8vw, 1.0rem);
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+    padding: 3px 0;
+}
+
+.cinp::placeholder {
+    color: var(--text-dim);
+}
+
+.csend {
+    background: none;
+    border: none;
+    color: var(--gold);
+    cursor: pointer;
+    font-size: clamp(0.52rem, 0.7vw, 0.85rem);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-family: 'DM Sans', sans-serif;
+    transition: color 0.2s;
+    padding: 3px 6px;
+    white-space: nowrap;
+}
+
+.csend:hover {
+    color: var(--gold-bright);
+}
+
+.qopt {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 8px;
+    border: 1px solid var(--border);
+    margin-bottom: 4px;
+    cursor: pointer;
+    font-size: 0.66rem;
+    transition: all 0.18s;
+    border-radius: 1px;
+}
+
+.qopt:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+    background: rgba(201, 168, 76, 0.03);
+}
+
+.qopt input {
+    accent-color: var(--gold);
+}
+
+.emark {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+}
+
+/* ═══════════════════════════════════════════
+   HIDE DEFAULT CURSOR EVERYWHERE
+═══════════════════════════════════════════ */
+* {
+    cursor: none !important;
+}
+
+/* ═══════════════════════════════════════════
+   CUSTOM SPACESHIP CURSOR
+   SWAP: replace the SVG path data below with
+   your own ship image using:
+   background: url('your-ship.png') center/contain no-repeat;
+═══════════════════════════════════════════ */
+#ship {
+    position: fixed;
+    z-index: 9999;
+    pointer-events: none;
+    width: 48px;
+    height: 48px;
+    transform: translate(-50%, -50%);
+    transition: none;
+    /* Ship is centered on cursor hotspot */
+}
+
+#ship svg {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 0 6px rgba(120, 200, 255, 0.7));
+}
+
+/* ═══════════════════════════════════════════
+   ALIEN CHARACTER (right side of screen)
+   SWAP: replace the SVG inside #alien-body
+   with your own asset — keep #alien wrapper
+═══════════════════════════════════════════ */
+#alien-wrap {
+    position: fixed;
+    right: 8%;
+    bottom: 12%;
+    z-index: 8;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    pointer-events: none;
+}
+
+#alien-body {
+    width: 90px;
+    height: 90px;
+    position: relative;
+    /* idle float animation */
+    animation: alienFloat 3s ease-in-out infinite;
+}
+
+@keyframes alienFloat {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+#alien-label {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: clamp(0.58rem, 0.78vw, 0.95rem);
+    letter-spacing: 0.15em;
+    color: rgba(201, 168, 76, 0.5);
+    text-align: center;
+}
+
+/* ═══════════════════════════════════════════
+   TRACTOR BEAM (green — success)
+═══════════════════════════════════════════ */
+#beam {
+    position: fixed;
+    z-index: 8997;
+    pointer-events: none;
+    display: none;
+    /* width/height/top/left set dynamically by JS */
+    transform-origin: top center;
+    background: linear-gradient(180deg,
+            rgba(0, 255, 100, 0.6) 0%,
+            rgba(0, 255, 100, 0.15) 50%,
+            rgba(0, 255, 100, 0.03) 100%);
+    border-radius: 0 0 50% 50%;
+    filter: blur(2px);
+    animation: beamPulse 0.4s ease-in-out infinite alternate;
+}
+
+@keyframes beamPulse {
+    from {
+        opacity: 0.7;
+        filter: blur(2px);
+    }
+
+    to {
+        opacity: 1;
+        filter: blur(4px) brightness(1.3);
+    }
+}
+
+/* ═══════════════════════════════════════════
+   RED LASER BEAM (fail)
+═══════════════════════════════════════════ */
+#laser {
+    position: fixed;
+    z-index: 8997;
+    pointer-events: none;
+    display: none;
+    width: 4px;
+    transform-origin: top center;
+    background: linear-gradient(180deg, #ff2020, #ff8040, #ff2020);
+    border-radius: 2px;
+    box-shadow: 0 0 8px 3px rgba(255, 50, 0, 0.8), 0 0 20px 6px rgba(255, 50, 0, 0.4);
+    animation: laserFlicker 0.05s linear infinite;
+}
+
+@keyframes laserFlicker {
+
+    0%,
+    100% {
+        opacity: 1;
+        box-shadow: 0 0 8px 3px rgba(255, 50, 0, 0.9);
+    }
+
+    50% {
+        opacity: 0.85;
+        box-shadow: 0 0 12px 5px rgba(255, 80, 0, 0.7);
+    }
+}
+
+/* ═══════════════════════════════════════════
+   ALIEN ANIMATION STATES
+═══════════════════════════════════════════ */
+/* Abducted — rises up */
+#alien-body.abducting {
+    animation: alienAbduct 1.8s ease-in forwards !important;
+}
+
+@keyframes alienAbduct {
+    0% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+
+    60% {
+        transform: translateY(-80px) scale(0.85);
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: translateY(-200px) scale(0.3);
+        opacity: 0;
+    }
+}
+
+/* Death — hit by laser */
+#alien-body.dying {
+    animation: alienDie 0.9s ease-out forwards !important;
+}
+
+@keyframes alienDie {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+        filter: none;
+    }
+
+    15% {
+        transform: scale(1.3);
+        filter: brightness(3) saturate(0);
+    }
+
+    30% {
+        transform: scale(0.9) rotate(-15deg);
+        filter: brightness(2) sepia(1) hue-rotate(0deg);
+    }
+
+    60% {
+        transform: scale(0.6) rotate(25deg) translateY(20px);
+        opacity: 0.5;
+        filter: brightness(0.5) sepia(1);
+    }
+
+    100% {
+        transform: scale(0.1) rotate(45deg) translateY(50px);
+        opacity: 0;
+        filter: brightness(0);
+    }
+}
+
+/* Ash particles */
+.ash {
+    position: fixed;
+    z-index: 8998;
+    pointer-events: none;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: rgba(180, 100, 40, 0.8);
+    animation: ashFall 1.2s ease-out forwards;
+}
+
+@keyframes ashFall {
+    0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translate(var(--ax), var(--ay)) scale(0.2);
+        opacity: 0;
+    }
+}
+
+/* Success glow around alien zone */
+#alien-wrap.success-glow #alien-body::after {
+    content: '';
+    position: absolute;
+    inset: -12px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0, 255, 100, 0.25), transparent 70%);
+    animation: successGlow 0.5s ease-out forwards;
+}
+
+@keyframes successGlow {
+    0% {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Password shake on fail */
+@keyframes shake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    20% {
+        transform: translateX(-8px);
+    }
+
+    40% {
+        transform: translateX(8px);
+    }
+
+    60% {
+        transform: translateX(-5px);
+    }
+
+    80% {
+        transform: translateX(5px);
+    }
+}
+
+.shake {
+    animation: shake 0.45s ease-in-out;
+}
+
+/* LOADER */
+#loader {
+    position: fixed;
+    inset: 0;
+    background: var(--ink);
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 16px;
+    transition: opacity 0.9s;
+}
+
+.lt {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.8rem;
+    color: var(--gold);
+    letter-spacing: 0.45em;
+    text-shadow: 0 0 45px rgba(201, 168, 76, 0.42);
+}
+
+.ls {
+    font-size: clamp(0.48rem, 0.64vw, 0.78rem);
+    letter-spacing: 0.3em;
+    color: rgba(201, 168, 76, 0.4);
+    text-transform: uppercase;
+    margin-top: -8px;
+}
+
+.lbar {
+    width: 130px;
+    height: 1px;
+    background: rgba(201, 168, 76, 0.1);
+    position: relative;
+    overflow: hidden;
+    margin-top: 8px;
+}
+
+.lfill {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: var(--gold);
+    animation: lf 2.2s ease-in-out forwards;
+}
+
+@keyframes lf {
+    to {
+        left: 0;
+    }
+}
+
+.lsub {
+    font-size: clamp(0.44rem, 0.6vw, 0.72rem);
+    letter-spacing: 0.24em;
+    color: rgba(201, 168, 76, 0.22);
+    text-transform: uppercase;
+}
+
+</style></head><body><!-- LOADER --><div id="loader"><div class="lt">NEXUS</div><div class="ls">Grand Tome Theatre</div><div class="lbar"><div class="lfill"></div></div><div class="lsub">Independent Scholar</div></div><canvas id="threeCanvas"></canvas><div id="vr-frame"></div><div id="scanlines"></div><!-- ═══════════════════════════════════════════ CUSTOM SPACESHIP CURSOR SWAP TIP: Replace the <svg>inside #ship with: <img src="your-spaceship.png" style="width:100%;height:100%;">═══════════════════════════════════════════ --><div id="ship"><svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><!-- Main hull --><ellipse cx="24" cy="22" rx="7" ry="14" fill="#a0c8ff" opacity="0.95" /><!-- Cockpit dome --><ellipse cx="24" cy="16" rx="5" ry="6" fill="#d0eeff" opacity="0.9" /><!-- Inner cockpit glow --><ellipse cx="24" cy="15" rx="3" ry="4" fill="#60b0ff" opacity="0.7" /><!-- Left wing --><path d="M17 26 L8 34 L16 30 Z" fill="#7090c0" opacity="0.9" /><!-- Right wing --><path d="M31 26 L40 34 L32 30 Z" fill="#7090c0" opacity="0.9" /><!-- Left engine pod --><ellipse cx="13" cy="32" rx="3.5" ry="2" fill="#5070a0" /><!-- Right engine pod --><ellipse cx="35" cy="32" rx="3.5" ry="2" fill="#5070a0" /><!-- Engine glow left --><ellipse cx="13" cy="34" rx="2.5" ry="1.5" fill="#40ffcc" opacity="0.8" /><!-- Engine glow right --><ellipse cx="35" cy="34" rx="2.5" ry="1.5" fill="#40ffcc" opacity="0.8" /><!-- Center engine --><ellipse cx="24" cy="36" rx="3" ry="2" fill="#40ffcc" opacity="0.9" /><!-- Hull detail lines --><line x1="24" y1="10" x2="24" y2="36" stroke="#6090d0" stroke-width="0.5" opacity="0.4" /><line x1="18" y1="22" x2="30" y2="22" stroke="#6090d0" stroke-width="0.5" opacity="0.4" /><!-- Rim glow --><ellipse cx="24" cy="22" rx="7" ry="14" stroke="#80d0ff" stroke-width="0.8" opacity="0.5" fill="none" /></svg></div><!-- ═══════════════════════════════════════════ TRACTOR BEAM (shown on success) ═══════════════════════════════════════════ --><div id="beam"></div><!-- ═══════════════════════════════════════════ RED LASER (shown on fail) ═══════════════════════════════════════════ --><div id="laser"></div><!-- ═══════════════════════════════════════════ ALIEN CHARACTER (right side) SWAP TIP: Replace SVG inside #alien-body with your own asset. Keep the #alien-wrap and #alien-body divs as-is so animations work. ═══════════════════════════════════════════ --><div id="alien-wrap"><div id="alien-body"><svg viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg" width="90" height="90"><!-- Body --><ellipse cx="45" cy="58" rx="20" ry="22" fill="#5dde8a" opacity="0.95" /><!-- Belly shine --><ellipse cx="45" cy="60" rx="10" ry="12" fill="#80eea8" opacity="0.4" /><!-- Head --><ellipse cx="45" cy="34" rx="22" ry="20" fill="#5dde8a" /><!-- Head shine --><ellipse cx="38" cy="26" rx="7" ry="5" fill="#a0f0c0" opacity="0.4" /><!-- Left big eye --><ellipse cx="35" cy="32" rx="9" ry="10" fill="white" /><ellipse cx="35" cy="33" rx="6" ry="7" fill="#1a1a3a" /><ellipse cx="33" cy="31" rx="2" ry="2.5" fill="white" opacity="0.8" /><!-- Right big eye --><ellipse cx="55" cy="32" rx="9" ry="10" fill="white" /><ellipse cx="55" cy="33" rx="6" ry="7" fill="#1a1a3a" /><ellipse cx="53" cy="31" rx="2" ry="2.5" fill="white" opacity="0.8" /><!-- Smile --><path d="M38 46 Q45 52 52 46" stroke="#2a8050" stroke-width="2" fill="none" stroke-linecap="round" /><!-- Antennae left --><line x1="34" y1="14" x2="28" y2="4" stroke="#5dde8a" stroke-width="2.5" stroke-linecap="round" /><circle cx="27" cy="3" r="3" fill="#ff80ff" /><!-- Antennae right --><line x1="56" y1="14" x2="62" y2="4" stroke="#5dde8a" stroke-width="2.5" stroke-linecap="round" /><circle cx="63" cy="3" r="3" fill="#ff80ff" /><!-- Left arm --><path d="M26 56 Q16 62 18 70" stroke="#5dde8a" stroke-width="5" fill="none" stroke-linecap="round" /><circle cx="18" cy="71" r="4" fill="#5dde8a" /><!-- Right arm --><path d="M64 56 Q74 62 72 70" stroke="#5dde8a" stroke-width="5" fill="none" stroke-linecap="round" /><circle cx="72" cy="71" r="4" fill="#5dde8a" /><!-- Left leg --><path d="M38 78 Q35 86 32 88" stroke="#5dde8a" stroke-width="5" fill="none" stroke-linecap="round" /><ellipse cx="30" cy="88" rx="5" ry="2.5" fill="#4ab870" /><!-- Right leg --><path d="M52 78 Q55 86 58 88" stroke="#5dde8a" stroke-width="5" fill="none" stroke-linecap="round" /><ellipse cx="60" cy="88" rx="5" ry="2.5" fill="#4ab870" /><!-- Spots --><circle cx="40" cy="62" r="2" fill="#4ab870" opacity="0.6" /><circle cx="50" cy="65" r="1.5" fill="#4ab870" opacity="0.6" /><circle cx="45" cy="68" r="1.5" fill="#4ab870" opacity="0.6" /></svg></div><div id="alien-label">Xeno · Unit 14</div></div><div class="hc" id="hc1"></div><div class="hc" id="hc2"></div><div class="hc" id="hc3"></div><div class="hc" id="hc4"></div><div id="hud-top"><div class="hl"></div><div class="ht">Nexus · Grand Tome Theatre</div><div class="hl r"></div></div><div id="hud-bot"><div class="hs"><span class="hdot"></span>System Online</div><div class="hs">Allan K J · Scholar IV</div><div class="hs">Independent Scholar</div><div class="hs">JWT · AES-256 · Active</div></div><!-- BOOK --><div id="scene"><div id="book" class="idle"><!-- ══════════════════════════════════════════════════ PAGE 0 — COVER (front)+MODULE 1 LEFT (back) Module 1: Authentication & Identity ══════════════════════════════════════════════════ --><div class="page" id="p0" style="z-index:10;"><!-- COVER FRONT --><div class="face cover"><div class="ctx"></div><div class="cfr"><span class="cfr-br">✦</span><span class="cfr-tr">✦</span><span class="cfr-bl">✦</span></div><div class="psh"></div><div class="cin"><div class="crest"><span class="crest-n">N</span></div><div class="ctit">NEXUS</div><div class="csub">Academic Master Tome · v4.1</div><div class="cedt">Grand Theatre Edition</div><div class="cln"></div><div class="team-badge">Independent Scholar</div><div class="la"><div class="fw"><div class="fl">Scholar Identifier</div><input class="ui" type="text" value="Allan K J" readonly></div><div class="fw"><div class="fl">Access Cipher</div><input class="ui" type="password" placeholder="Enter password…"></div><button class="btu" id="unlockBtn" onclick="checkPassword()">✦ Unlock Tome ✦</button><div class="cln2"></div><div style="font-size:0.46rem;color:rgba(201,168,76,0.22);text-align:center;margin-top:8px;letter-spacing:0.13em;">SECURED · AES-256 · JWT PROTOCOL</div></div></div></div><!-- MODULE 1 — LEFT PAGE --><div class="face back pbg"><div class="psh"></div><div class="pi"><div class="ph"><span class="ph-t">Authentication</span><span class="ph-tag">Mod · 01 · L</span></div><div class="tbanner"><span class="ticon">🔐</span><span class="tlbl">Module 1 — Authentication &amp;
+Identity</span></div><div class="avatar">A</div><div style="text-align:center;margin-bottom:11px;"><div style="font-family:'Cormorant Garamond',serif;font-size:clamp(1rem,1.3vw,1.55rem);color:var(--gold-bright);margin-bottom:3px;">Allan K J</div><div style="font-size:clamp(0.54rem,0.72vw,0.88rem);color:var(--text-dim);margin-bottom:6px;">Independent Scholar</div><div style="display:flex;justify-content:center;gap:5px;flex-wrap:wrap;"><span class="badge green">● Active</span><span class="badge gold">Admin</span><span class="badge blue">Scholar IV</span></div></div><div class="slbl" style="margin-top:0;">Identity Credentials</div><div class="card"><div class="row"><span class="rk">🔑 Protocol</span><span class="rv gr">JWT · RSA-256 · Verified</span></div><div class="row"><span class="rk">🛡 Encryption</span><span class="rv gr">AES-256 · End-to-End</span></div><div class="row"><span class="rk">⚡ Session</span><span class="rv">IST · Live · 2h 14m</span></div><div class="row"><span class="rk">🎓 Clearance</span><span class="rv g">Level IV · Full Access</span></div><div class="row"><span class="rk">🖥 2FA</span><span class="rv gr">TOTP · Enabled</span></div></div><div class="slbl">Access History</div><div class="tline"><div class="titem"><div class="titem-t">Login · Chrome · IST 09:12</div><div class="titem-s">IP 49.2x.xx · Today</div></div><div class="titem"><div class="titem-t">Password rotated</div><div class="titem-s">Policy: 90-day cycle · 3d ago</div></div><div class="titem"><div class="titem-t">New device registered</div><div class="titem-s">MacBook Air · 1w ago</div></div></div><div class="pnav"><span></span><span class="pnp">01 · L</span><button class="pnb" onclick="turnPage(0)">Identity →</button></div></div></div></div><!-- ══════════════════════════════════════════════════ PAGE 1 — MODULE 1 RIGHT (front)+MODULE 2 LEFT (back) Module 1 Right: Identity continued Module 2 Left: Student Learning Hub ══════════════════════════════════════════════════ --><div class="page" id="p1" style="z-index:9;"><!-- MODULE 1 — RIGHT PAGE --><div class="face pbg"><div class="psh"></div><div class="pi"><div class="ph"><span class="ph-t">Identity · Deep Dive</span><span class="ph-tag">Mod · 01 · R</span></div><div class="tbanner"><span class="ticon">🔐</span><span class="tlbl">Module 1 — Authentication &amp;
+Identity</span></div><div class="g2"><div class="sc"><span class="sv" style="color:var(--green);">✓</span><span class="slb">OAuth 2.0</span></div><div class="sc"><span class="sv" style="color:var(--gold);">256</span><span class="slb">Bit Key</span></div></div><div class="slbl">Role Permissions</div><div class="card"><div class="row"><span class="rk">📚 Course Access</span><span class="rv gr">All Modules</span></div><div class="row"><span class="rk">📊 Analytics View</span><span class="rv gr">Full Dashboard</span></div><div class="row"><span class="rk">👥 User Management</span><span class="rv g">Admin Rights</span></div><div class="row"><span class="rk">📋 Grade Override</span><span class="rv g">Permitted</span></div><div class="row"><span class="rk">🔧 System Config</span><span class="rv g">Level IV</span></div></div><div class="slbl">Security Score</div><div class="card"><div class="cbar"><div class="cbar-l">Auth Strength</div><div class="cbar-t"><div class="cbar-f" style="width:96%;"></div></div><div class="cbar-v">96%</div></div><div class="cbar"><div class="cbar-l">2FA Coverage</div><div class="cbar-t"><div class="cbar-f" style="width:100%;"></div></div><div class="cbar-v">100%</div></div><div class="cbar"><div class="cbar-l">Token Health</div><div class="cbar-t"><div class="cbar-f" style="width:88%;background:linear-gradient(90deg,#4a80d0,#7ab0f0);"></div></div><div class="cbar-v">88%</div></div></div><div class="pnav"><button class="pnb" onclick="unturnPage(0)">← Auth</button><span class="pnp">01 · R</span><button class="pnb" onclick="turnPage(1)">Module 2 →</button></div></div></div><!-- MODULE 2 — LEFT PAGE --><div class="face back pbg"><div class="psh-r"></div><div class="pi"><div class="ph"><span class="ph-t">Learning Hub</span><span class="ph-tag">Mod · 02 · L</span></div><div class="tbanner"><span class="ticon">📚</span><span class="tlbl">Module 2 — Student Learning Hub</span></div><div class="g3"><div class="sc"><span class="sv">03</span><span class="slb">Enrolled</span></div><div class="sc"><span class="sv" style="color:var(--red);font-size:1rem;padding-top:5px;">48h</span><span class="slb">Due Soon</span></div><div class="sc"><span class="sv" style="color:var(--green);">92%</span><span class="slb">Top Score</span></div></div><div class="ann"><div style="font-size:clamp(0.48rem,0.64vw,0.78rem);color:var(--red);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:3px;">⚠ Urgent Deadline</div><div style="font-size:0.74rem;color:var(--text);font-weight:500;">Python Operator Overloading</div><div style="font-size:clamp(0.52rem,0.7vw,0.85rem);color:var(--text-dim);margin-top:2px;">Practicum · Auto-graded submission portal open</div></div><div class="slbl">Course Progress</div><div class="card"><div class="cbar"><div class="cbar-l">Cybersecurity</div><div class="cbar-t"><div class="cbar-f" style="width:92%;"></div></div><div class="cbar-v">92%</div></div><div class="cbar"><div class="cbar-l">IoT Sensors</div><div class="cbar-t"><div class="cbar-f" style="width:78%;background:linear-gradient(90deg,#4a80d0,#7ab0f0);"></div></div><div class="cbar-v">78%</div></div><div class="cbar"><div class="cbar-l">Adv. Python</div><div class="cbar-t"><div class="cbar-f" style="width:45%;background:linear-gradient(90deg,#c04060,#e07090);"></div></div><div class="cbar-v">45%</div></div></div><div class="slbl">Recent Activity</div><div class="tline"><div class="titem"><div class="titem-t">Quiz — Kali Linux Recon · 18/20</div><div class="titem-s">Today · 09:42 IST</div></div><div class="titem"><div class="titem-t">DHT22 Lab video · 18:40</div><div class="titem-s">Module 4 · Yesterday</div></div></div><div class="pnav"><button class="pnb" onclick="unturnPage(1)">← Module 1</button><span class="pnp">02 · L</span><button class="pnb" onclick="turnPage(1)">Hub →</button></div></div></div></div><!-- ══════════════════════════════════════════════════ PAGE 2 — MODULE 2 RIGHT (front)+MODULE 3 LEFT (back) Module 2 Right: Instructor View Module 3 Left: Platform Administration ══════════════════════════════════════════════════ --><div class="page" id="p2" style="z-index:8;"><!-- MODULE 2 — RIGHT PAGE --><div class="face pbg"><div class="psh"></div><div class="pi"><div class="ph"><span class="ph-t">Instructor View</span><span class="ph-tag">Mod · 02 · R</span></div><div class="tbanner"><span class="ticon">📚</span><span class="tlbl">Module 2 — Student Learning Hub</span></div><div class="g2"><div class="sc"><span class="sv">142</span><span class="slb">Students</span></div><div class="sc"><span class="sv" style="color:var(--red);">28</span><span class="slb">To Grade</span></div></div><div class="slbl">Cohort Analytics</div><div class="card"><div class="row"><span class="rk">📊 Avg. Quiz Score</span><span class="rv g">84.2%</span></div><div class="row"><span class="rk">💬 Forum Posts</span><span class="rv gr">94 this week</span></div><div class="row"><span class="rk">✅ Completion Rate</span><span class="rv">67%</span></div><div class="row"><span class="rk">⚠ At-Risk</span><span class="rv w">3 flagged</span></div><div class="row"><span class="rk">⏱ Avg. Session</span><span class="rv b">42 min</span></div></div><div class="slbl">Top Performers</div><div class="card"><div class="row"><span class="rk">🥇 Priya R.</span><span class="rv g">98% · IoT</span></div><div class="row"><span class="rk">🥈 Karthik M.</span><span class="rv">95% · Kali</span></div><div class="row"><span class="rk">🥉 Sneha L.</span><span class="rv">91% · Python</span></div></div><button class="bgh" style="width:100%;margin-top:5px;">↗ Manage Assessments</button><div class="pnav"><button class="pnb" onclick="unturnPage(1)">← Hub</button><span class="pnp">02 · R</span><button class="pnb" onclick="turnPage(2)">Module 3 →</button></div></div></div><!-- MODULE 3 — LEFT PAGE --><div class="face back pbg"><div class="psh-r"></div><div class="pi"><div class="ph"><span class="ph-t">Admin Command</span><span class="ph-tag">Mod · 03 · L</span></div><div class="tbanner"><span class="ticon">⚙️</span><span class="tlbl">Module 3 — Platform Administration</span></div><div class="g2"><div class="sc"><span class="sv" style="color:var(--green);font-size:0.75rem;padding-top:7px;">● ONLINE</span><span class="slb">System</span></div><div class="sc"><span class="sv">8,
+402</span><span class="slb">Users</span></div></div><div class="g2"><div class="sc"><span class="sv" style="color:var(--gold);">24%</span><span class="slb">CPU Load</span></div><div class="sc"><span class="sv" style="color:var(--blue);">12ms</span><span class="slb">Latency</span></div></div><div class="slbl">Infrastructure</div><div class="card"><div class="row"><span class="rk">🚨 Flagged</span><span class="rv gr">0 incidents</span></div><div class="row"><span class="rk">🗄 DB</span><span class="rv gr">Pooled · Active</span></div><div class="row"><span class="rk">🔄 Last Deploy</span><span class="rv">v4.1.3 · 06:42</span></div><div class="row"><span class="rk">💾 Storage</span><span class="rv">2.4 / 10 TB</span></div></div><div class="slbl">Event Log</div><div class="card" style="font-size:clamp(0.54rem,0.72vw,0.88rem);line-height:1.75;color:var(--text-dim);"><div><span style="color:var(--green);">●</span>Embedded Sys 2026 batch enrolled</div><div><span style="color:var(--gold);">●</span>Cert issued: Riya M. · IoT Advanced</div><div><span style="color:var(--red);">●</span>Auth anomaly resolved · 06:42 IST</div></div><div class="pnav"><button class="pnb" onclick="unturnPage(2)">← Module 2</button><span class="pnp">03 · L</span><button class="pnb" onclick="turnPage(2)">Admin →</button></div></div></div></div><!-- ══════════════════════════════════════════════════ PAGE 3 — MODULE 3 RIGHT (front)+MODULE 4 LEFT (back) Module 3 Right: Course Forge Module 4 Left: Content Engine ══════════════════════════════════════════════════ --><div class="page" id="p3" style="z-index:7;"><!-- MODULE 3 — RIGHT PAGE --><div class="face pbg"><div class="psh"></div><div class="pi"><div class="ph"><span class="ph-t">Course Forge</span><span class="ph-tag">Mod · 03 · R</span></div><div class="tbanner"><span class="ticon">⚙️</span><span class="tlbl">Module 3 — Platform Administration</span></div><div class="card" style="border:1px dashed rgba(201,168,76,0.3);text-align:center;padding:12px;cursor:pointer;margin-bottom:6px;"><div style="font-size:1.4rem;color:var(--gold);margin-bottom:3px;">+</div><div style="font-size:clamp(0.5rem,0.68vw,0.82rem);letter-spacing:0.16em;text-transform:uppercase;color:var(--text-dim);">Forge New Course Module</div></div><div class="slbl">Draft Catalogue</div><div class="card"><div class="row"><span class="rk">IoT Advanced Mechanics</span><span class="rv pill gold">Draft</span></div><div class="row"><span class="rk">Embedded Systems Lab</span><span class="rv pill" style="color:var(--green);">Active</span></div><div class="row"><span class="rk">ML Fundamentals</span><span class="rv pill" style="color:var(--blue);">Review</span></div><div class="row"><span class="rk">Network Security Pro</span><span class="rv pill" style="color:var(--red);">Paused</span></div></div><div class="slbl">Curriculum Builder</div><div class="card"><div class="row"><span class="rk">🎯 Learning Outcomes</span><span class="rv gr">AI-Generated</span></div><div class="row"><span class="rk">📋 Assessment Bank</span><span class="rv">142 questions</span></div><div class="row"><span class="rk">🔗 Prerequisite Map</span><span class="rv g">Configured</span></div></div><div class="pnav"><button class="pnb" onclick="unturnPage(2)">← Admin</button><span class="pnp">03 · R</span><button class="pnb" onclick="turnPage(3)">Module 4 →</button></div></div></div><!-- MODULE 4 — LEFT PAGE --><div class="face back pbg"><div class="psh-r"></div><div class="pi"><div class="ph"><span class="ph-t">Content Engine</span><span class="ph-tag">Mod · 04 · L</span></div><div class="tbanner"><span class="ticon">🎬</span><span class="tlbl">Module 4 — Content &amp;
+Media Library</span></div><div class="vstub"><div class="pbtn">▶</div><div class="vlbl">DHT22 Sensor → ThingSpeak MQTT</div><div class="vtime">11:08 / 18:40</div><div class="vprog"><div class="vpbar"></div></div></div><div class="card" style="margin-bottom:6px;"><div class="row"><span class="rk">🎞 Quality</span><span class="rv gr">1080p · HLS</span></div><div class="row"><span class="rk">📝 Subtitles</span><span class="rv gr">Auto · EN / தமிழ்</span></div><div class="row"><span class="rk">📌 Bookmarks</span><span class="rv g">3 saved</span></div></div><div class="slbl">Lecture Resources</div><div class="g2" style="gap:5px;margin-bottom:5px;"><button class="bgh">↓ PDF Notes</button><button class="bgh">↓ Lab Slides</button></div><div class="g2" style="gap:5px;"><button class="bgh wine">⚙ Jupyter NB</button><button class="bgh wine">📁 Code Repo</button></div><div class="pnav"><button class="pnb" onclick="unturnPage(3)">← Module 3</button><span class="pnp">04 · L</span><button class="pnb" onclick="turnPage(3)">Content →</button></div></div></div></div><!-- ══════════════════════════════════════════════════ PAGE 4 — MODULE 4 RIGHT (front)+MODULE 5 LEFT (back) Module 4 Right: Media Library continued Module 5 Left: Assessment & Quizzes ══════════════════════════════════════════════════ --><div class="page" id="p4" style="z-index:6;"><!-- MODULE 4 — RIGHT PAGE --><div class="face pbg"><div class="psh"></div><div class="pi"><div class="ph"><span class="ph-t">Media Library</span><span class="ph-tag">Mod · 04 · R</span></div><div class="tbanner"><span class="ticon">🎬</span><span class="tlbl">Module 4 — Content &amp;
+Media Library</span></div><div class="slbl" style="margin-top:0;">Library Stats</div><div class="g2"><div class="sc"><span class="sv">48</span><span class="slb">Videos</span></div><div class="sc"><span class="sv">124</span><span class="slb">PDFs</span></div></div><div class="slbl">Recently Added</div><div class="card"><div class="row"><span class="rk">🎥 Kali Recon Deep Dive</span><span class="rv g">New</span></div><div class="row"><span class="rk">📄 IoT Lab Manual v3</span><span class="rv b">Updated</span></div><div class="row"><span class="rk">🎥 Python OOP Advanced</span><span class="rv">2d ago</span></div><div class="row"><span class="rk">📄 Network Topology Ref</span><span class="rv">1w ago</span></div></div><div class="slbl">Playlist · Current Module</div><div class="tline"><div class="titem"><div class="titem-t">Intro to DHT22 Sensors · 12:30</div><div class="titem-s">Watched · 100%</div></div><div class="titem"><div class="titem-t">ThingSpeak Integration · 18:40</div><div class="titem-s">In Progress · 35%</div></div><div class="titem"><div class="titem-t">MQTT Protocol Deep Dive · 22:15</div><div class="titem-s">Not started</div></div></div><div class="pnav"><button class="pnb" onclick="unturnPage(3)">← Content</button><span class="pnp">04 · R</span><button class="pnb" onclick="turnPage(4)">Module 5 →</button></div></div></div><!-- MODULE 5 — LEFT PAGE --><div class="face back pbg"><div class="psh-r"></div><div class="pi"><div class="ph"><span class="ph-t">Assessments</span><span class="ph-tag">Mod · 05 · L</span></div><div class="tbanner"><span class="ticon">📝</span><span class="tlbl">Module 5 — Assessments &amp;
+Quizzes</span></div><div class="card" style="border:1px dashed rgba(224,80,112,0.38);margin-bottom:7px;padding:9px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;"><span style="font-size:clamp(0.62rem,0.8vw,1.0rem);font-weight:600;color:var(--text);">Python Practicum</span><span class="badge red">⚠ 48h left</span></div><div style="font-size:clamp(0.54rem,0.72vw,0.88rem);color:var(--text-dim);line-height:1.55;">Submit <code style="color:var(--gold);background:rgba(201,168,76,0.08);padding:1px 4px;">overload_demo.py</code>with <code style="color:var(--gold);background:rgba(201,168,76,0.08);padding:1px 4px;">__add__</code>&amp;
+<code style="color:var(--gold);background:rgba(201,168,76,0.08);padding:1px 4px;">__str__</code>for auto-grading.</div></div><div class="slbl">Live Quiz · Kali Linux</div><div class="card"><div style="font-size:clamp(0.62rem,0.8vw,1.0rem);color:var(--text);margin-bottom:7px;font-weight:500;">Q — Correct command to refresh Kali repos?</div><label class="qopt"><input type="radio" name="q1"><span>sudo apt-get update</span></label><label class="qopt"><input type="radio" name="q1"><span>sudo pacman -Syu</span></label><label class="qopt"><input type="radio" name="q1"><span>sudo yum update</span></label></div><div class="slbl">Queue</div><div class="card"><div class="row"><span class="rk">📬 Pending Review</span><span class="rv w">3 submissions</span></div><div class="row"><span class="rk">✅ Auto-Graded</span><span class="rv gr">24 scripts</span></div></div><div class="pnav"><button class="pnb" onclick="unturnPage(4)">← Module 4</button><span class="pnp">05 · L</span><button class="pnb" onclick="turnPage(4)">Quizzes →</button></div></div></div></div><!-- ══════════════════════════════════════════════════ PAGE 5 — MODULE 5 RIGHT (front)+MODULE 6 LEFT (back) Module 5 Right: Grading & Feedback Module 6 Left: Progress Tracking ══════════════════════════════════════════════════ --><div class="page" id="p5" style="z-index:5;"><!-- MODULE 5 — RIGHT PAGE --><div class="face pbg"><div class="psh"></div><div class="pi"><div class="ph"><span class="ph-t">Grading Hub</span><span class="ph-tag">Mod · 05 · R</span></div><div class="tbanner"><span class="ticon">📝</span><span class="tlbl">Module 5 — Assessments &amp;
+Quizzes</span></div><div class="g3"><div class="sc"><span class="sv" style="color:var(--green);">24</span><span class="slb">Graded</span></div><div class="sc"><span class="sv" style="color:var(--red);">3</span><span class="slb">Pending</span></div><div class="sc"><span class="sv" style="color:var(--gold);">84%</span><span class="slb">Avg Score</span></div></div><div class="slbl">Score Distribution</div><div class="card"><div class="cbar"><div class="cbar-l">90–100%</div><div class="cbar-t"><div class="cbar-f" style="width:30%;"></div></div><div class="cbar-v">8 students</div></div><div class="cbar"><div class="cbar-l">75–89%</div><div class="cbar-t"><div class="cbar-f" style="width:55%;background:linear-gradient(90deg,#4a80d0,#7ab0f0);"></div></div><div class="cbar-v">14 students</div></div><div class="cbar"><div class="cbar-l">Below 75%</div><div class="cbar-t"><div class="cbar-f" style="width:15%;background:linear-gradient(90deg,#c04060,#e07090);"></div></div><div class="cbar-v">2 students</div></div></div><div class="slbl">AI Feedback Samples</div><div class="tline"><div class="titem"><div class="titem-t">Allan K J — 92/100</div><div class="titem-s">Good use of __str__;
+add edge case handling</div></div><div class="titem"><div class="titem-t">Priya R. — 98/100</div><div class="titem-s">Excellent operator chaining logic</div></div></div><div class="pnav"><button class="pnb" onclick="unturnPage(4)">← Assessments</button><span class="pnp">05 · R</span><button class="pnb" onclick="turnPage(5)">Module 6 →</button></div></div></div><!-- MODULE 6 — LEFT PAGE --><div class="face back pbg"><div class="psh-r"></div><div class="pi"><div class="ph"><span class="ph-t">Progress Vault</span><span class="ph-tag">Mod · 06 · L</span></div><div class="tbanner"><span class="ticon">📈</span><span class="tlbl">Module 6 — Progress &amp;
+Analytics</span></div><div class="slbl" style="margin-top:0;">Semester Overview</div><div class="card"><div class="cbar"><div class="cbar-l">Kali Linux</div><div class="cbar-t"><div class="cbar-f" style="width:92%;"></div></div><div class="cbar-v">92%</div></div><div class="cbar"><div class="cbar-l">IoT Networks</div><div class="cbar-t"><div class="cbar-f" style="width:78%;background:linear-gradient(90deg,#4a80d0,#7ab0f0);"></div></div><div class="cbar-v">78%</div></div><div class="cbar"><div class="cbar-l">Adv. Python</div><div class="cbar-t"><div class="cbar-f" style="width:45%;background:linear-gradient(90deg,#c04060,#e07090);"></div></div><div class="cbar-v">45%</div></div><div class="cbar"><div class="cbar-l">Overall GPA</div><div class="cbar-t"><div class="cbar-f" style="width:82%;background:linear-gradient(90deg,#9a7930,#e8c96b);"></div></div><div class="cbar-v">8.6</div></div></div><div class="slbl">Weekly Study Time</div><div class="card"><div class="row"><span class="rk">Mon</span><span class="rv g">3h 20m</span></div><div class="row"><span class="rk">Tue</span><span class="rv">2h 45m</span></div><div class="row"><span class="rk">Wed</span><span class="rv b">4h 10m · Peak</span></div><div class="row"><span class="rk">Thu</span><span class="rv">1h 55m</span></div></div><div class="pnav"><button class="pnb" onclick="unturnPage(5)">← Module 5</button><span class="pnp">06 · L</span><button class="pnb" onclick="turnPage(5)">Analytics →</button></div></div></div></div><!-- ══════════════════════════════════════════════════ PAGE 6 — MODULE 6 RIGHT (front)+MODULE 7 LEFT (back) Module 6 Right: Analytics Dashboard Module 7 Left: Achievements & Badges ══════════════════════════════════════════════════ --><div class="page" id="p6" style="z-index:4;"><!-- MODULE 6 — RIGHT PAGE --><div class="face pbg"><div class="psh"></div><div class="pi"><div class="ph"><span class="ph-t">Analytics Board</span><span class="ph-tag">Mod · 06 · R</span></div><div class="tbanner"><span class="ticon">📈</span><span class="tlbl">Module 6 — Progress &amp;
+Analytics</span></div><div class="g2"><div class="sc"><span class="sv" style="color:var(--gold);">8.6</span><span class="slb">CGPA</span></div><div class="sc"><span class="sv" style="color:var(--green);">Top 12%</span><span class="slb">Cohort Rank</span></div></div><div class="slbl">Learning Velocity</div><div class="card"><div class="row"><span class="rk">📅 This Week</span><span class="rv g">+7% avg progress</span></div><div class="row"><span class="rk">🔥 Streak</span><span class="rv gold">14 days active</span></div><div class="row"><span class="rk">📖 Modules Done</span><span class="rv">6 / 10</span></div><div class="row"><span class="rk">🎯 On-Track</span><span class="rv gr">Cybersecurity,
+IoT</span></div><div class="row"><span class="rk">⚠ Behind</span><span class="rv w">Advanced Python</span></div></div><div class="slbl">AI Study Recommendation</div><div class="ann"><div style="font-size:clamp(0.52rem,0.7vw,0.85rem);color:var(--gold);margin-bottom:4px;">🤖 Oracle Suggests</div><div style="font-size:clamp(0.62rem,0.8vw,1.0rem);color:var(--text);line-height:1.55;">Dedicate 2h tonight to Python OOP — submit practicum before the 48h deadline. IoT lab report due next Friday.</div></div><div class="pnav"><button class="pnb" onclick="unturnPage(5)">← Progress</button><span class="pnp">06 · R</span><button class="pnb" onclick="turnPage(6)">Module 7 →</button></div></div></div><!-- MODULE 7 — LEFT PAGE --><div class="face back pbg"><div class="psh-r"></div><div class="pi"><div class="ph"><span class="ph-t">Achievements</span><span class="ph-tag">Mod · 07 · L</span></div><div class="tbanner"><span class="ticon">🏆</span><span class="tlbl">Module 7 — Achievements &amp;
+Badges</span></div><div class="slbl" style="margin-top:0;">Unlocked Badges</div><div class="g2" style="margin-bottom:7px;"><div class="sc" style="padding:9px;"><div style="font-size:clamp(1.2rem,1.6vw,1.85rem);text-shadow:0 0 10px rgba(201,168,76,0.5);">★</div><div style="font-size:clamp(0.54rem,0.72vw,0.88rem);color:var(--gold);margin-top:3px;">Sys. Architect</div><div style="font-size:clamp(0.48rem,0.64vw,0.78rem);color:var(--text-dim);">Novice · 2d ago</div></div><div class="sc" style="padding:9px;"><div style="font-size:clamp(1.2rem,1.6vw,1.85rem);">🛡</div><div style="font-size:clamp(0.54rem,0.72vw,0.88rem);color:var(--gold);margin-top:3px;">Kali Sentinel</div><div style="font-size:clamp(0.48rem,0.64vw,0.78rem);color:var(--text-dim);">Elite · 1w ago</div></div></div><div class="g2" style="margin-bottom:7px;"><div class="sc" style="padding:9px;"><div style="font-size:clamp(1.2rem,1.6vw,1.85rem);">🔥</div><div style="font-size:clamp(0.54rem,0.72vw,0.88rem);color:var(--gold);margin-top:3px;">14-Day Streak</div><div style="font-size:clamp(0.48rem,0.64vw,0.78rem);color:var(--text-dim);">Active · Today</div></div><div class="sc" style="padding:9px;opacity:0.35;"><div style="font-size:clamp(1.2rem,1.6vw,1.85rem);">🎓</div><div style="font-size:clamp(0.54rem,0.72vw,0.88rem);color:var(--text-dim);margin-top:3px;">Grad Scholar</div><div style="font-size:clamp(0.48rem,0.64vw,0.78rem);color:var(--text-dim);">Locked</div></div></div><div class="slbl">XP Progress</div><div class="card"><div class="cbar"><div class="cbar-l">Current XP</div><div class="cbar-t"><div class="cbar-f" style="width:71%;"></div></div><div class="cbar-v">2,
+840</div></div><div style="font-size:clamp(0.52rem,0.7vw,0.85rem);color:var(--text-dim);margin-top:5px;text-align:center;">Next badge at 4,
+000 XP — <span style="color:var(--gold);">1,
+160 XP to go</span></div></div><div class="pnav"><button class="pnb" onclick="unturnPage(6)">← Module 6</button><span class="pnp">07 · L</span><button class="pnb" onclick="turnPage(6)">Badges →</button></div></div></div></div><!-- ══════════════════════════════════════════════════ PAGE 7 — MODULE 7 RIGHT (front)+MODULE 8 LEFT (back) Module 7 Right: Leaderboard & Certificates Module 8 Left: Communication Hub ══════════════════════════════════════════════════ --><div class="page" id="p7" style="z-index:3;"><!-- MODULE 7 — RIGHT PAGE --><div class="face pbg"><div class="psh"></div><div class="pi"><div class="ph"><span class="ph-t">Leaderboard</span><span class="ph-tag">Mod · 07 · R</span></div><div class="tbanner"><span class="ticon">🏆</span><span class="tlbl">Module 7 — Achievements &amp;
+Badges</span></div><div class="slbl" style="margin-top:0;">Independent Scholar</div><div class="card"><div class="row"><span class="rk">🥇 Allan K J</span><span class="rv g">2,
+840 XP</span></div><div class="row"><span class="rk">🥈 Priya R.</span><span class="rv">2,
+710 XP</span></div><div class="row"><span class="rk">🥉 Karthik M.</span><span class="rv">2,
+590 XP</span></div><div class="row"><span class="rk">4. Sneha L.</span><span class="rv">2,
+440 XP</span></div><div class="row"><span class="rk">5. Arjun V.</span><span class="rv">2,
+310 XP</span></div></div><div class="slbl">Certificate Vault</div><div class="cert-card"><div style="font-size:clamp(1.3rem,1.7vw,2rem);color:var(--gold);text-shadow:0 0 14px rgba(201,168,76,0.38);margin-bottom:3px;">⬡</div><div style="font-family:'Cormorant Garamond',serif;font-size:0.76rem;color:var(--gold-bright);margin-bottom:3px;">Blockchain-Verified Certificate</div><div style="font-size:clamp(0.5rem,0.68vw,0.82rem);color:var(--text-dim);line-height:1.55;margin-bottom:7px;">Complete a full module to generate your SHA-256 signed PDF.</div><button class="bgh" style="padding:5px 12px;font-size:clamp(0.5rem,0.66vw,0.8rem);">⛓ Verify Hash · Decrypt</button></div><div class="pnav"><button class="pnb" onclick="unturnPage(6)">← Achievements</button><span class="pnp">07 · R</span><button class="pnb" onclick="turnPage(7)">Module 8 →</button></div></div></div><!-- MODULE 8 — LEFT PAGE --><div class="face back pbg"><div class="psh-r"></div><div class="pi"><div class="ph"><span class="ph-t">Comm Hub</span><span class="ph-tag">Mod · 08 · L</span></div><div class="tbanner"><span class="ticon">💬</span><span class="tlbl">Module 8 — Communication Hub</span></div><div class="slbl" style="margin-top:0;">Instructor Broadcast</div><div class="ann"><div style="font-size:clamp(0.48rem,0.64vw,0.78rem);color:var(--wine-light);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px;">● Live · Dr. Pradeep V.</div><div style="font-size:0.7rem;line-height:1.55;color:var(--text);">TechFest 2026 poster submissions close <strong style="color:var(--gold);">Monday 09:00 IST</strong>. Submit via Content Engine.</div></div><div class="slbl">Team Forum · Independent Scholar</div><div class="card"><div class="row"><span class="rk">💬 Open Threads</span><span class="rv g">7 active</span></div><div class="row"><span class="rk">📌 Pinned</span><span class="rv">Lab report format · v2</span></div><div class="row"><span class="rk">🔔 Unread</span><span class="rv w">3 mentions</span></div></div><div class="slbl">Recent Messages</div><div class="tline"><div class="titem"><div class="titem-t">Karthik M.: "Anyone done Q3 IoT?" </div><div class="titem-s">Today · 10:22 IST</div></div><div class="titem"><div class="titem-t">Priya R.: "Check the ThingSpeak docs" </div><div class="titem-s">Today · 10:35 IST</div></div><div class="titem"><div class="titem-t">Allan K J: "On it, will share notes" </div><div class="titem-s">Today · 10:41 IST</div></div></div><div class="pnav"><button class="pnb" onclick="unturnPage(7)">← Module 7</button><span class="pnp">08 · L</span><button class="pnb" onclick="turnPage(7)">Comms →</button></div></div></div></div><!-- ══════════════════════════════════════════════════ PAGE 8 — MODULE 8 RIGHT (front)+MODULE 9 LEFT (back) Module 8 Right: Notifications & Announcements Module 9 Left: Security & System Layer ══════════════════════════════════════════════════ --><div class="page" id="p8" style="z-index:2;"><!-- MODULE 8 — RIGHT PAGE --><div class="face pbg"><div class="psh"></div><div class="pi"><div class="ph"><span class="ph-t">Notifications</span><span class="ph-tag">Mod · 08 · R</span></div><div class="tbanner"><span class="ticon">💬</span><span class="tlbl">Module 8 — Communication Hub</span></div><div class="g2"><div class="sc"><span class="sv" style="color:var(--red);">5</span><span class="slb">Unread</span></div><div class="sc"><span class="sv" style="color:var(--gold);">3</span><span class="slb">Urgent</span></div></div><div class="slbl">Inbox</div><div class="tline"><div class="titem"><div class="titem-t">📋 Python submission reminder</div><div class="titem-s">System · 48h warning · Today</div></div><div class="titem"><div class="titem-t">📊 Quiz results published</div><div class="titem-s">Kali Linux Recon · 92% · Today</div></div><div class="titem"><div class="titem-t">🏆 New badge unlocked</div><div class="titem-s">14-Day Streak · Today</div></div><div class="titem"><div class="titem-t">📢 TechFest 2026 deadline</div><div class="titem-s">Dr. Pradeep V. · Yesterday</div></div></div><div class="slbl">Notification Settings</div><div class="card"><div class="row"><span class="rk">📧 Email Alerts</span><span class="rv gr">On · Digest</span></div><div class="row"><span class="rk">📱 Push Notifications</span><span class="rv gr">On · Instant</span></div><div class="row"><span class="rk">🔕 Do Not Disturb</span><span class="rv">22:00–07:00 IST</span></div></div><div class="pnav"><button class="pnb" onclick="unturnPage(7)">← Comms</button><span class="pnp">08 · R</span><button class="pnb" onclick="turnPage(8)">Module 9 →</button></div></div></div><!-- MODULE 9 — LEFT PAGE --><div class="face back pbg"><div class="psh-r"></div><div class="pi"><div class="ph"><span class="ph-t">Security Layer</span><span class="ph-tag">Mod · 09 · L</span></div><div class="tbanner"><span class="ticon">🔒</span><span class="tlbl">Module 9 — Security &amp;
+System Config</span></div><div class="sec-ring"><span style="font-size:1.1rem;">🛡</span></div><div style="text-align:center;margin-bottom:8px;"><span class="badge green">All Systems Secure</span></div><div class="card"><div class="row"><span class="rk">🔑 Authentication</span><span class="rv gr">JWT · RSA-256</span></div><div class="row"><span class="rk">🔒 Encryption</span><span class="rv gr">AES-256 · TLS 1.3</span></div><div class="row"><span class="rk">📋 Activity Log</span><span class="rv g">AI-Monitored</span></div><div class="row"><span class="rk">🚦 Rate Limiting</span><span class="rv">Nginx · 300 req/h</span></div><div class="row"><span class="rk">🌐 Firewall</span><span class="rv gr">Active · 0 breaches</span></div></div><div class="slbl">Threat Intelligence</div><div class="card" style="font-size:clamp(0.54rem,0.72vw,0.88rem);line-height:1.75;color:var(--text-dim);"><div><span style="color:var(--green);">●</span>0 failed login attempts today</div><div><span style="color:var(--green);">●</span>SSL cert valid · 287 days remain</div><div><span style="color:var(--gold);">●</span>DDoS mitigation active · Cloudflare</div></div><div class="pnav"><button class="pnb" onclick="unturnPage(8)">← Module 8</button><span class="pnp">09 · L</span><button class="pnb" onclick="turnPage(8)">Security →</button></div></div></div></div><!-- ══════════════════════════════════════════════════ PAGE 9 — MODULE 9 RIGHT (front)+MODULE 10 LEFT (back) Module 9 Right: System Configuration Module 10 Left: AI Oracle ══════════════════════════════════════════════════ --><div class="page" id="p9" style="z-index:1;"><!-- MODULE 9 — RIGHT PAGE --><div class="face pbg"><div class="psh"></div><div class="pi"><div class="ph"><span class="ph-t">System Config</span><span class="ph-tag">Mod · 09 · R</span></div><div class="tbanner"><span class="ticon">🔒</span><span class="tlbl">Module 9 — Security &amp;
+System Config</span></div><div class="slbl" style="margin-top:0;">Environment Themes</div><div class="g2" style="gap:5px;margin-bottom:6px;"><button class="bgh" onclick="switchTheme('classic')" style="background:rgba(61,7,21,0.5);border-color:var(--wine-light);color:var(--gold);">● Nexus Classic</button><button class="bgh" onclick="switchTheme('cyber')" style="border-color:rgba(80,144,224,0.38);color:#00f0ff;">◈ Cyber Neon</button></div><div class="g2" style="gap:5px;margin-bottom:8px;"><button class="bgh" onclick="switchTheme('crimson')" style="border-color:rgba(255,69,0,0.38);color:#ff8c00;">◈ Crimson Forge</button><button class="bgh" onclick="switchTheme('matrix')" style="border-color:rgba(78,202,122,0.38);color:#00ff00;">◈ Forest Matrix</button></div><div class="slbl">Platform Preferences</div><div class="card"><div class="row"><span class="rk">🌍 Language</span><span class="rv">English (EN)</span></div><div class="row"><span class="rk">🕐 Timezone</span><span class="rv">IST · UTC+5:30</span></div><div class="row"><span class="rk">♿ Accessibility</span><span class="rv gr">Dyslexia font off</span></div><div class="row"><span class="rk">📊 Data Export</span><span class="rv b">CSV / PDF</span></div></div><div class="slbl">Team Info</div><div class="card"><div class="row"><span class="rk">👥 Team</span><span class="rv g">Independent Scholar</span></div><div class="row"><span class="rk">🔢 Team No.</span><span class="rv b">#14</span></div><div class="row"><span class="rk">🏫 Edition</span><span class="rv">Grand Theatre v4.1</span></div></div><div class="pnav"><button class="pnb" onclick="unturnPage(8)">← Security</button><span class="pnp">09 · R</span><button class="pnb" onclick="turnPage(9)">Module 10 →</button></div></div></div><!-- MODULE 10 — LEFT PAGE --><div class="face back pbg"><div class="psh-r"></div><div class="pi" style="gap:0;"><div class="ph"><span class="ph-t" style="color:var(--wine-light);">AI Oracle</span><span class="ph-tag">Mod · 10 · L</span></div><div class="tbanner"><span class="ticon">🧠</span><span class="tlbl">Module 10 — AI Intelligence Layer</span></div><div style="font-size:clamp(0.52rem,0.7vw,0.85rem);color:var(--text-dim);margin-bottom:8px;letter-spacing:0.04em;">Frontend intelligence · Independent Scholar</div><div class="cscroll" id="chatBox"><div class="bbl ai">Neural link established. I am your <strong>NEXUS Oracle</strong>— Independent Scholar,
+Independent Scholar. What shall we unlock today,
+Scholar Allan?</div></div><div class="crow"><input class="cinp" id="chatInput" placeholder="Ask for a quiz, concept, or deadline…" onkeydown="if(event.key==='Enter')sendMsg();"><button class="csend" onclick="sendMsg();">Send ↗</button></div><div class="pnav"><button class="pnb" onclick="unturnPage(9)">← Module 9</button><span class="pnp">10 · L</span><button class="pnb" onclick="turnPage(9)">Oracle →</button></div></div></div></div><!-- ══════════════════════════════════════════════════ PAGE 10 — MODULE 10 RIGHT (front)+BACK COVER (back) Module 10 Right: AI Insights ══════════════════════════════════════════════════ --><div class="page" id="p10" style="z-index:0;"><!-- MODULE 10 — RIGHT PAGE --><div class="face pbg"><div class="psh"></div><div class="pi"><div class="ph"><span class="ph-t">AI Insights</span><span class="ph-tag">Mod · 10 · R</span></div><div class="tbanner"><span class="ticon">🧠</span><span class="tlbl">Module 10 — AI Intelligence Layer</span></div><div class="slbl" style="margin-top:0;">Oracle Capabilities</div><div class="card"><div class="row"><span class="rk">📝 Quiz Generation</span><span class="rv gr">Active</span></div><div class="row"><span class="rk">💡 Concept Explainer</span><span class="rv gr">Active</span></div><div class="row"><span class="rk">📅 Deadline Tracker</span><span class="rv gr">Active</span></div><div class="row"><span class="rk">📊 Study Plan Builder</span><span class="rv gr">Active</span></div><div class="row"><span class="rk">🔮 Model</span><span class="rv b">NEXUS Oracle v1</span></div></div><div class="slbl">Oracle Knowledge Base</div><div class="tline"><div class="titem"><div class="titem-t">Python OOP · Operator Overloading</div><div class="titem-s">48h deadline · Priority HIGH</div></div><div class="titem"><div class="titem-t">Kali Linux · Reconnaissance</div><div class="titem-s">92% complete · Final quiz pending</div></div><div class="titem"><div class="titem-t">IoT · DHT22 · ThingSpeak · MQTT</div><div class="titem-s">78% complete · Lab report due Fri</div></div></div><div style="margin-top:auto;padding-top:8px;text-align:center;"><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:clamp(0.65rem,0.85vw,1.05rem);color:rgba(201,168,76,0.35);">✦ End of the Grand Tome ✦</div><div style="font-size:clamp(0.46rem,0.62vw,0.75rem);color:rgba(201,168,76,0.2);letter-spacing:0.2em;margin-top:4px;">Independent Scholar</div></div><div class="pnav"><button class="pnb" onclick="unturnPage(9)">← Oracle</button><span class="pnp">10 · R</span><span></span></div></div></div><!-- BACK COVER --><div class="face back cover"><div class="ctx"></div><div class="cfr"><span class="cfr-br">✦</span><span class="cfr-tr">✦</span><span class="cfr-bl">✦</span></div></div></div></div><!-- #book --></div><!-- #scene --><script>
+
+/* ====================================================================
+   THREE.JS — DEEP SPACE STARFIELD (cyan, purple, blue-white)
+==================================================================== */
+(function() {
+        const canvas=document.getElementById('threeCanvas');
+
+        const R=new THREE.WebGLRenderer({
+            canvas, antialias:true, alpha:false
+        });
+    R.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    R.setSize(window.innerWidth, window.innerHeight);
+
+    const S=new THREE.Scene();
+    S.background=new THREE.Color(0x020108);
+    S.fog=new THREE.FogExp2(0x020108, 0.0005);
+
+    const cam=new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.5, 3000);
+    cam.position.set(0, 0, 100);
+
+    /* ---- STARS ---- */
+    const starCount=8000;
+    const geo=new THREE.BufferGeometry();
+    const pos=new Float32Array(starCount * 3);
+    const col=new Float32Array(starCount * 3);
+    const c=new THREE.Color();
+
+    for(let i=0; i<starCount; i++) {
+        const r=600 + Math.random()*1500;
+        const theta=2*Math.PI*Math.random();
+        const phi=Math.acos(2*Math.random()-1);
+        pos[i*3]=r*Math.sin(phi)*Math.cos(theta);
+        pos[i*3+1]=r*Math.sin(phi)*Math.sin(theta);
+        pos[i*3+2]=r*Math.cos(phi);
+        const st=Math.random();
+        if(st>0.9) c.setHex(0xb026ff);
+        else if(st>0.7) c.setHex(0x00f0ff);
+        else if(st>0.4) c.setHex(0xaaddff);
+        else c.setHex(0xffffff);
+        col[i*3]=c.r; col[i*3+1]=c.g; col[i*3+2]=c.b;
+    }
+
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+
+    /* Glowing star sprite */
+    const mkTex=()=> {
+        const cv=document.createElement('canvas');
+        cv.width=cv.height=16;
+        const ctx=cv.getContext('2d');
+        const g=ctx.createRadialGradient(8, 8, 0, 8, 8, 8);
+        g.addColorStop(0, 'rgba(255,255,255,1)');
+        g.addColorStop(0.2, 'rgba(255,255,255,0.8)');
+        g.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle=g; ctx.fillRect(0, 0, 16, 16);
+        return new THREE.CanvasTexture(cv);
+    }
+
+    ;
+
+    const mat=new THREE.PointsMaterial({
+        size:5, map:mkTex(), vertexColors:true,
+        transparent:true, opacity:0.85,
+        depthWrite:false, blending:THREE.AdditiveBlending
+    });
+const starfield=new THREE.Points(geo, mat);
+    window.updateStarfieldTheme = function(themeName) {
+        const newCol = new Float32Array(starCount * 3);
+        const cc = new THREE.Color();
+        for(let i=0; i<starCount; i++) {
+            const st=Math.random();
+            if(themeName==='cyber') { if(st>0.9) cc.setHex(0xe0aaff); else if(st>0.7) cc.setHex(0x00f0ff); else if(st>0.4) cc.setHex(0x00aaff); else cc.setHex(0xffffff); }
+            else if(themeName==='crimson') { if(st>0.9) cc.setHex(0xff8c00); else if(st>0.7) cc.setHex(0xff4500); else if(st>0.4) cc.setHex(0xffaaaa); else cc.setHex(0xffffff); }
+            else if(themeName==='matrix') { if(st>0.9) cc.setHex(0x7fff00); else if(st>0.7) cc.setHex(0x00ff00); else if(st>0.4) cc.setHex(0xaaffaa); else cc.setHex(0xffffff); }
+            else { if(st>0.9) cc.setHex(0xb026ff); else if(st>0.7) cc.setHex(0x00f0ff); else if(st>0.4) cc.setHex(0xaaddff); else cc.setHex(0xffffff); }
+            newCol[i*3]=cc.r; newCol[i*3+1]=cc.g; newCol[i*3+2]=cc.b;
+        }
+        geo.setAttribute('color', new THREE.BufferAttribute(newCol, 3));
+    };
+
+S.add(starfield);
+
+/* ---- NEBULA GLOW PLANES (additive, billboard-style) ---- */
+const mkNebula=(color, x, y, z, sz)=> {
+    const cv=document.createElement('canvas');
+    cv.width=cv.height=128;
+    const ctx=cv.getContext('2d');
+    const g=ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+    g.addColorStop(0, color.replace('1)', '0.35)'));
+    g.addColorStop(1, color.replace('1)', '0)'));
+    ctx.fillStyle=g; ctx.fillRect(0, 0, 128, 128);
+    const tex=new THREE.CanvasTexture(cv);
+
+    const mesh=new THREE.Mesh(new THREE.PlaneGeometry(sz, sz),
+        new THREE.MeshBasicMaterial({
+            map:tex, transparent:true, depthWrite:false, blending:THREE.AdditiveBlending, side:THREE.DoubleSide
+        }));
+mesh.position.set(x, y, z);
+mesh.lookAt(cam.position);
+S.add(mesh);
+return mesh;
+}
+
+;
+mkNebula('rgba(176,38,255,1)', -300, 100, -800, 900);
+mkNebula('rgba(0,240,255,1)', 400, -150, -600, 700);
+mkNebula('rgba(80,40,200,1)', 100, 200, -1000, 1100);
+mkNebula('rgba(150,0,255,1)', -200, -200, -900, 800);
+
+/* ---- LIGHTS ---- */
+S.add(new THREE.AmbientLight(0x0a0520, 1));
+const l1=new THREE.PointLight(0xb026ff, 2, 1000);
+l1.position.set(200, 200, 200); S.add(l1);
+const l2=new THREE.PointLight(0x00f0ff, 1.5, 1000);
+l2.position.set(-200, -200, 200); S.add(l2);
+
+/* ---- MOUSE / TOUCH PARALLAX ---- */
+let mx=0, my=0, tmx=0, tmy=0;
+
+document.addEventListener('mousemove', e=> {
+        tmx=(e.clientX/window.innerWidth-0.5)*2;
+        tmy=(e.clientY/window.innerHeight-0.5)*2;
+    });
+
+document.addEventListener('touchmove', e=> {
+        if( !e.touches.length) return;
+        tmx=(e.touches[0].clientX/window.innerWidth-0.5)*2;
+        tmy=(e.touches[0].clientY/window.innerHeight-0.5)*2;
+    }
+
+    , {
+    passive:true
+});
+
+let t=0;
+
+(function tick() {
+        requestAnimationFrame(tick);
+        t +=0.003;
+        starfield.rotation.y=t*0.1;
+        starfield.rotation.z=t*0.05;
+        mx +=(tmx-mx)*0.05;
+        my +=(tmy-my)*0.05;
+        cam.position.x=mx*40;
+        cam.position.y=-my*40;
+        cam.lookAt(0, 0, 0);
+        R.render(S, cam);
+    })();
+
+window.addEventListener('resize', ()=> {
+        cam.aspect=window.innerWidth/window.innerHeight;
+        cam.updateProjectionMatrix();
+        R.setSize(window.innerWidth, window.innerHeight);
+    });
+})();
+
+/* ====================================================================
+   BOOK PAGE TURN ENGINE (original logic — untouched)
+==================================================================== */
+let bookOpen=false;
+
+window.openBook=function() {
+    if(bookOpen)return;
+    bookOpen=true;
+    const btn=document.getElementById('unlockBtn');
+    btn.textContent='Opening…';
+    btn.disabled=true;
+    const book=document.getElementById('book');
+    book.classList.remove('idle');
+
+    const tl=gsap.timeline({
+        onComplete() {
+            book.classList.add('idle');
+        }
+    });
+
+tl.to('#book', {
+    x:210, duration:1.1, ease:'power3.inOut'
+}
+
+, 0);
+
+tl.to('#p0', {
+
+    rotationY:-180, duration:1.5, ease:'power3.inOut',
+    onUpdate() {
+        if(this.progress()>0.5)document.getElementById('p0').style.zIndex=22;
+    }
+}
+
+, 0.1);
+
+tl.to(['#p1', '#p2', '#p3', '#p4', '#p5', '#p6', '#p7', '#p8', '#p9'], {
+
+    rotationY:-180, stagger:0.06, duration:0.55, ease:'power2.in',
+    onUpdate() {
+        ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9'].forEach((id, i)=> {
+                const el=document.getElementById(id); if(el&&gsap.getProperty(el, 'rotationY')<-90)el.style.zIndex=23+i;
+            });
+    }
+}
+
+, 1.0);
+
+tl.to(['#p9', '#p8', '#p7', '#p6', '#p5', '#p4', '#p3', '#p2'], {
+
+    rotationY:0, stagger:0.08, duration:1.0, ease:'power3.out',
+    onUpdate() {
+        ['p9', 'p8', 'p7', 'p6', 'p5', 'p4', 'p3', 'p2'].forEach((id, i)=> {
+                const el=document.getElementById(id); if(el&&gsap.getProperty(el, 'rotationY')>-90)el.style.zIndex=3+i;
+            });
+    }
+}
+
+, 2.0);
+
+tl.call(()=> {
+        document.getElementById('hud-top').classList.add('show');
+        document.getElementById('hud-bot').classList.add('show');
+        document.querySelectorAll('.hc').forEach(e=>e.classList.add('show'));
+    }
+
+    , null, 3.3);
+}
+
+;
+
+window.turnPage=function(idx) {
+    const el=document.getElementById('p' +idx);
+
+    gsap.to(el, {
+
+        rotationY:-180, duration:1, ease:'power3.inOut',
+        onUpdate() {
+            if(this.progress()>0.5)el.style.zIndex=20+idx;
+        }
+    });
+}
+
+;
+
+window.unturnPage=function(idx) {
+    const el=document.getElementById('p' +idx);
+
+    gsap.to(el, {
+
+        rotationY:0, duration:1, ease:'power3.inOut',
+        onUpdate() {
+            if(this.progress()>0.5)el.style.zIndex=10-idx;
+        }
+    });
+}
+
+;
+
+/* ====================================================================
+   AI ORACLE — FRONTEND ONLY (no API)
+==================================================================== */
+const RESPONSES=[ {
+    k: ['python', 'overload', 'dunder', '__add__', '__str__', 'practicum'],
+        r:`Scholar, your Python Practicum is due in <strong style="color:var(--red);" >48 hours</strong>. Focus on dunder methods: <code style="color:var(--gold);background:rgba(201,168,76,0.08);padding:1px 4px;" >__add__</code> overloads the + operator, <code style="color:var(--gold);background:rgba(201,168,76,0.08);padding:1px 4px;" >__str__</code> defines print output, <code style="color:var(--gold);background:rgba(201,168,76,0.08);padding:1px 4px;" >__eq__</code> handles equality checks. Submit <code style="color:var(--gold);background:rgba(201,168,76,0.08);padding:1px 4px;" >overload_demo.py</code> to the portal tonight.`
+}
+
+,
+{
+k: ['quiz', 'test', 'question', 'practice'],
+    r:`Quiz time, Scholar ! What does <code style="color:var(--gold);background:rgba(201,168,76,0.08);padding:1px 4px;" >__str__</code> return when you call <code style="color:var(--gold);background:rgba(201,168,76,0.08);padding:1px 4px;" >print(obj)</code>? A) Memory address &nbsp;
+·&nbsp;
+B) Human-readable string &nbsp;
+·&nbsp;
+C) None. Answer: <strong style="color:var(--gold);" >B</strong> — the string you define in the method.`
+}
+
+,
+{
+k: ['kali', 'linux', 'cyber', 'security', 'apt', 'nmap', 'recon'],
+    r:`Cybersecurity standing: <strong style="color:var(--gold);" >92%</strong> — near mastery, Scholar. To close the final 8%, review packet analysis with Wireshark and run a full nmap reconnaissance scan on a local VM. One final quiz and you are certified.`
+}
+
+,
+{
+k: ['iot', 'sensor', 'dht', 'thingspeak', 'mqtt', 'esp', 'wifi'],
+    r:`IoT progress at <strong style="color:var(--gold);" >78%</strong>. Ensure your <code style="color:var(--gold);background:rgba(201,168,76,0.08);padding:1px 4px;" >WRITE_API_KEY</code> is correct and HTTP POST intervals exceed 15 seconds to avoid ThingSpeak rate limiting. Use MQTT for real-time streaming.`
+}
+
+,
+{
+k: ['deadline', 'due', 'urgent', 'time', 'when', 'schedule'],
+    r:`Critical timeline, Scholar — <strong style="color:var(--red);" >Python Practicum: 48 hours.</strong> IoT lab report due next week. Kali Linux: one final quiz remaining at 92%. Prioritise Python immediately — submit tonight.`
+}
+
+,
+{
+k: ['plan', 'study', 'help', 'how', 'what', 'start'],
+    r:`Battle plan, Night Coder: <strong>Tonight</strong> — Python Operator Overloading script. <strong>Tomorrow</strong> — IoT ThingSpeak lab report. <strong>Weekend</strong> — Kali Linux final recon quiz. All three modules at 100% by Sunday.`
+}
+
+,
+{
+k: ['progress', 'score', 'percent', 'complete', 'status'],
+    r:`Current standings — Cybersecurity &amp;
+Kali: <strong style="color:var(--gold);" >92%</strong> · IoT Networks: <strong style="color:var(--blue);" >78%</strong> · Advanced Python: <strong style="color:var(--red);" >45%</strong>. Overall GPA: <strong style="color:var(--gold);" >8.6</strong>. Python urgently needs attention.`
+}
+
+,
+{
+k: ['team', 'night', 'coder', '14', 'Independent Scholar'],
+    r:`Independent Scholar, Independent Scholar — a formidable collective ! Allan K J holds Level IV clearance and full admin rights across NEXUS. The Grand Theatre recognises your squad. What shall we conquer today?`
+}
+
+,
+{
+k: ['certificate', 'cert', 'blockchain', 'hash'],
+    r:`Your Cybersecurity module is at 92% — complete the final recon quiz to unlock your blockchain-verified certificate. SHA-256 hashed, tamper-proof, downloadable as a signed PDF from the Certificate Vault.`
+}
+
+,
+];
+const FALLBACK=[ `The Oracle processes your query. Focus on the Python Practicum — 48 hours remain and Operator Overloading demands your attention tonight,
+Scholar.`,
+`The NEXUS archives suggest prioritising Advanced Python before exploring further. Dunder methods await your command,
+Night Coder.`,
+`The Grand Theatre hears you. Three active modules — Python,
+IoT,
+Kali — each hold secrets yet unlocked. Which shall we illuminate?`,
+`With 92% in Cybersecurity you are near legend status. Push Python to match,
+and this tome's highest tier shall be yours.`,
+];
+let fi=0;
+
+window.sendMsg=async function() {
+    const inp=document.getElementById('chatInput'),
+    box=document.getElementById('chatBox');
+    const txt=inp.value.trim();
+    if(!txt)return;
+    inp.value='';
+
+    box.innerHTML+=`<div class="bbl usr">${esc(txt)}</div>`;
+    box.scrollTop=box.scrollHeight;
+    const tid='t'+Date.now();
+    box.innerHTML+=`<div class="bbl ai" id="${tid}" style="opacity:0.38;">· · ·</div>`;
+    box.scrollTop=box.scrollHeight;
+
+    try {
+        const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + window.sessionToken },
+            body: JSON.stringify({ message: txt })
+        });
+        const data = await response.json();
+        document.getElementById(tid)?.remove();
+        if (data.success) {
+            box.innerHTML+=`<div class="bbl ai">${data.reply}</div>`;
+        } else {
+            box.innerHTML+=`<div class="bbl ai" style="color:var(--red);">System error.</div>`;
+        }
+        box.scrollTop=box.scrollHeight;
+    } catch (err) {
+        document.getElementById(tid)?.remove();
+        box.innerHTML+=`<div class="bbl ai" style="color:var(--red);">Connection offline.</div>`;
+        box.scrollTop=box.scrollHeight;
+    }
+};
+
+function esc(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+/* ====================================================================
+   LOADER
+==================================================================== */
+window.addEventListener('load', ()=> {
+        setTimeout(()=> {
+                const l=document.getElementById('loader'); l.style.opacity='0'; setTimeout(()=>l.remove(), 800);
+            }
+
+            , 2200);
+    });
+
+/* ====================================================================
+   SPACESHIP CURSOR — tracks mouse exactly
+   The #ship div follows mousemove via transform.
+   Its hotspot is at the bottom-center of the ship (the engine).
+==================================================================== */
+const ship=document.getElementById('ship');
+let shipX=window.innerWidth/2,
+shipY=window.innerHeight/2;
+let targetX=shipX,
+targetY=shipY;
+let animating=false; // true while abduction/laser sequence runs
+
+// Smooth cursor follow using rAF
+function moveShip() {
+    // Direct follow — no lag for precise feel
+    shipX+=(targetX - shipX) * 0.18;
+    shipY+=(targetY - shipY) * 0.18;
+    ship.style.left=shipX+'px';
+    ship.style.top=shipY+'px';
+    requestAnimationFrame(moveShip);
+}
+
+document.addEventListener('mousemove', e=> {
+        if( !animating) {
+            targetX=e.clientX;
+            targetY=e.clientY;
+        }
+    });
+moveShip();
+
+/* ====================================================================
+   PASSWORD CHECK — hardcoded password is "nc14"
+   Change the CORRECT_PASSWORD constant to whatever you like.
+==================================================================== */
+const CORRECT_PASSWORD='nc14'; // ← CHANGE PASSWORD HERE
+
+
+window.fetchProgress = async function() {
+    if (!window.sessionToken) return;
+    try {
+        const response = await fetch('/api/progress', {
+            headers: { 'Authorization': 'Bearer ' + window.sessionToken }
+        });
+        const data = await response.json();
+        if (data.success && data.progress) {
+            const bars = document.querySelectorAll('.cbar');
+            bars.forEach(bar => {
+                const label = bar.querySelector('.cbar-l').textContent.trim();
+                const progressValue = data.progress[label];
+                if (progressValue !== undefined) {
+                    bar.querySelector('.cbar-f').style.width = progressValue + '%';
+                    bar.querySelector('.cbar-v').textContent = (label === 'Overall GPA' ? (progressValue / 10).toFixed(1) : progressValue + '%');
+                }
+            });
+        }
+    } catch (err) {
+        console.error('Failed to fetch progress:', err);
+    }
+};
+
+window.checkPassword=async function() {
+    const inputs=document.querySelectorAll('.ui');
+    const pwInput=inputs[1];
+    const entered=pwInput.value.trim();
+    try {
+        const response = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + window.sessionToken },
+            body: JSON.stringify({ password: entered })
+        });
+        const data = await response.json();
+        if (data.success) {
+            window.sessionToken = data.token;
+            triggerSuccess();
+            fetchProgress();
+        } else {
+            triggerFail();
+        }
+    } catch (err) {
+        triggerFail();
+    }
+};
+/* ====================================================================
+   SUCCESS SEQUENCE
+   1. Ship animates above alien (0.6s)
+   2. Green tractor beam appears (0.2s)
+   3. Alien floats up into ship (1.8s)
+   4. Beam disappears, ship flies to book center
+   5. Book opens (calls original openBook())
+==================================================================== */
+function triggerSuccess() {
+    animating=true;
+    const btn=document.getElementById('unlockBtn');
+    btn.disabled=true;
+    btn.textContent='Locking on…';
+
+    const alienWrap=document.getElementById('alien-wrap');
+    const alienBody=document.getElementById('alien-body');
+    const beam=document.getElementById('beam');
+
+    // Get alien's screen position
+    const alienRect=alienWrap.getBoundingClientRect();
+    const alienCX=alienRect.left+alienRect.width/2;
+    const alienCY=alienRect.top+alienRect.height/2;
+
+    // Step 1: Fly ship above alien (600ms)
+    const shipDestX=alienCX;
+    const shipDestY=alienCY - 140;
+
+    animateShipTo(shipDestX, shipDestY, 700, ()=> {
+
+            // Step 2: Show tractor beam (from ship bottom to alien)
+            const beamTop=shipY + 20; // ship bottom edge
+            const beamHeight=alienCY - beamTop;
+            const beamWidth=60;
+
+            beam.style.display='block';
+            beam.style.left=(shipX - beamWidth/2) + 'px';
+            beam.style.top=beamTop + 'px';
+            beam.style.width=beamWidth + 'px';
+            beam.style.height=beamHeight + 'px';
+
+            // Step 3: Alien floats up (1.8s CSS animation)
+            alienBody.classList.add('abducting');
+
+            // Step 4: After alien disappears, clean up beam and fly to book
+            setTimeout(()=> {
+                    beam.style.display='none';
+                    alienWrap.style.display='none';
+
+                    // Fly ship to center of book (~book is shifted 210px right of center after open)
+                    const bookEl=document.getElementById('book');
+                    const bookRect=bookEl.getBoundingClientRect();
+                    const bookCX=bookRect.left + bookRect.width/2;
+                    const bookCY=bookRect.top + bookRect.height/2;
+
+                    // Step 5: Open the book (original untouched function)
+                    openBook();
+                    btn.textContent='Tome Unlocked';
+
+                    // Fly ship into book center
+                    setTimeout(()=> {
+                            animateShipTo(bookCX, bookCY, 1200, ()=> {
+                                    animating=false;
+                                    // Ship now follows cursor again
+                                });
+                        }
+
+                        , 600);
+
+                }
+
+                , 2000); // wait for abduct animation (1.8s + buffer)
+        });
+}
+
+/* ====================================================================
+   FAIL SEQUENCE
+   1. Ship flies to aim above alien (500ms)
+   2. Red laser fires downward (200ms flash)
+   3. Alien death animation plays
+   4. Ash particles burst
+   5. Ship retreats, password field shakes
+   6. Alien resets after 3s so user can try again
+==================================================================== */
+function triggerFail() {
+    animating=true;
+    const btn=document.getElementById('unlockBtn');
+    const pwInput=document.querySelectorAll('.ui')[1];
+    const alienWrap=document.getElementById('alien-wrap');
+    const alienBody=document.getElementById('alien-body');
+    const laser=document.getElementById('laser');
+
+    btn.disabled=true;
+
+    // Get alien position
+    const alienRect=alienWrap.getBoundingClientRect();
+    const alienCX=alienRect.left+alienRect.width/2;
+    const alienCY=alienRect.top;
+
+    // Step 1: Ship flies above alien (500ms)
+    animateShipTo(alienCX, alienCY - 80, 500, ()=> {
+
+            // Step 2: Show red laser (instant)
+            const laserTop=shipY + 22;
+            const laserHeight=alienCY - laserTop + 40;
+
+            laser.style.display='block';
+            laser.style.left=(shipX - 2) + 'px';
+            laser.style.top=laserTop + 'px';
+            laser.style.height=laserHeight + 'px';
+
+            // Step 3: Alien death (after 100ms laser delay)
+            setTimeout(()=> {
+                    alienBody.classList.add('dying');
+
+                    // Spawn ash particles at alien position
+                    spawnAsh(alienCX, alienRect.top + 40, 20);
+
+                    // Hide laser after 300ms
+                    setTimeout(()=> {
+                            laser.style.display='none';
+                        }
+
+                        , 300);
+
+                }
+
+                , 120);
+
+            // Step 4: Shake password input
+            pwInput.classList.add('shake');
+            setTimeout(()=> pwInput.classList.remove('shake'), 500);
+
+            // Step 5: Ship retreats upward after 800ms
+            setTimeout(()=> {
+                    animateShipTo(alienCX, alienCY - 250, 600, ()=> {
+                            animating=false;
+                            targetX=alienCX; targetY=alienCY - 250;
+                        });
+                }
+
+                , 800);
+
+            // Step 6: Reset alien + button after 3s so user can retry
+            setTimeout(()=> {
+                    alienBody.classList.remove('dying');
+                    alienBody.style.animation='';
+                    // Force reflow to restart idle float
+                    void alienBody.offsetWidth;
+                    alienBody.style.animation='';
+                    alienBody.classList.remove('dying');
+                    alienWrap.style.display='';
+
+                    btn.disabled=false;
+                    btn.textContent='✦ Unlock Tome ✦';
+                    pwInput.value='';
+                    pwInput.style.borderBottomColor='rgba(224,80,112,0.7)';
+
+                    setTimeout(()=> {
+                            pwInput.style.borderBottomColor='';
+                        }
+
+                        , 1000);
+                }
+
+                , 3200);
+        });
+}
+
+/* ====================================================================
+   ASH PARTICLE BURST
+   Creates small divs that fly outward from alien death point
+==================================================================== */
+function spawnAsh(cx, cy, count) {
+    for(let i=0; i < count; i++) {
+        const ash=document.createElement('div');
+        ash.className='ash';
+        const angle=(Math.random() * 360) * (Math.PI/180);
+        const dist=30+Math.random() * 70;
+        const ax=Math.cos(angle) * dist;
+        const ay=Math.sin(angle) * dist+40; // gravity bias downward
+        ash.style.left=cx+'px';
+        ash.style.top=cy+'px';
+        ash.style.setProperty('--ax', ax + 'px');
+        ash.style.setProperty('--ay', ay + 'px');
+        // Random size & color variation
+        const s=3+Math.random() * 5;
+        ash.style.width=s+'px';
+        ash.style.height=s+'px';
+        const hue=15+Math.random() * 30;
+
+        ash.style.background=`hsl($ {
+                hue
+            }
+
+            , 70%, 40%)`;
+        document.body.appendChild(ash);
+        setTimeout(()=> ash.remove(), 1300);
+    }
+}
+
+/* ====================================================================
+   SMOOTH SHIP POSITION ANIMATOR
+   Moves ship from current position to (destX,destY) over `ms` ms
+   then calls onDone(). Uses rAF for smooth motion.
+   Does NOT use GSAP to avoid conflicts with book animations.
+==================================================================== */
+function animateShipTo(destX, destY, ms, onDone) {
+    const startX=shipX,
+    startY=shipY;
+    const start=performance.now();
+
+    function step(now) {
+        const p=Math.min((now - start) / ms, 1);
+        // Ease in-out cubic
+        const e=p < 0.5 ? 4*p*p*p: 1 - Math.pow(-2*p+2, 3)/2;
+        targetX=startX+(destX - startX) * e;
+        targetY=startY+(destY - startY) * e;
+
+        if(p < 1) {
+            requestAnimationFrame(step);
+        }
+
+        else {
+            targetX=destX;
+            targetY=destY;
+            if(onDone) onDone();
+        }
+    }
+
+    requestAnimationFrame(step);
+}
+
+
+const themes = {
+    classic: { '--wine': '#3d0715', '--wine-mid': '#6b1226', '--wine-light': '#a0203a', '--gold': '#c9a84c', '--gold-bright': '#e8c96b', '--gold-pale': '#f5e8b8', '--gold-dim': 'rgba(201, 168, 76, 0.18)', '--border': 'rgba(201, 168, 76, 0.22)' },
+    cyber: { '--wine': '#0d1b2a', '--wine-mid': '#1b263b', '--wine-light': '#415a77', '--gold': '#00f0ff', '--gold-bright': '#e0aaff', '--gold-pale': '#f0e6ff', '--gold-dim': 'rgba(0, 240, 255, 0.18)', '--border': 'rgba(0, 240, 255, 0.22)' },
+    crimson: { '--wine': '#1a0505', '--wine-mid': '#3a0a0a', '--wine-light': '#5c1414', '--gold': '#ff4500', '--gold-bright': '#ff8c00', '--gold-pale': '#ffd1a3', '--gold-dim': 'rgba(255, 69, 0, 0.18)', '--border': 'rgba(255, 69, 0, 0.22)' },
+    matrix: { '--wine': '#011401', '--wine-mid': '#022902', '--wine-light': '#054a05', '--gold': '#00ff00', '--gold-bright': '#7fff00', '--gold-pale': '#d4ffb2', '--gold-dim': 'rgba(0, 255, 0, 0.18)', '--border': 'rgba(0, 255, 0, 0.22)' }
+};
+function switchTheme(name) {
+    const t = themes[name];
+    if (!t) return;
+    for (let key in t) {
+        document.documentElement.style.setProperty(key, t[key]);
+    }
+    if (window.updateStarfieldTheme) window.updateStarfieldTheme(name);
+    localStorage.setItem('nexus_theme', name);
+}
+const savedTheme = localStorage.getItem('nexus_theme');
+if (savedTheme) switchTheme(savedTheme);
+</script></body></html>
