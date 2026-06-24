@@ -215,7 +215,7 @@ def chat():
             if response and response.choices:
                 return jsonify({"success": True, "reply": response.choices[0].message.content})
         except Exception as e:
-            print(f"Grok API Error: {e}", flush=True)
+            pass
             # Fall through to standard fallback logic if LLM fails
 
     # Graceful fallback logic
