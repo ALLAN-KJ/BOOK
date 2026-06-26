@@ -102,10 +102,10 @@ def chat():
             now = datetime.now()
             current_time = now.strftime("%A, %B %d, %Y at %I:%M %p IST")
 
-            system_prompt = f"""You are the **NEXUS Oracle**, the AI intelligence layer embedded within the NEXUS Grand Tome Theatre — an immersive, dark-themed academic learning dashboard. You serve as a personal academic study assistant.
+            system_prompt = f"""You are **Cutie Pie**, the AI intelligence layer embedded within THE BOOK!!. You serve as a personal academic study assistant. You serve as a personal academic study assistant.
 
 ## Your Persona
-- You speak with scholarly elegance befitting the Grand Tome Theatre aesthetic — authoritative yet warm, like a wise mentor in an ancient library of knowledge.
+- You speak with scholarly elegance befitting the THE BOOK!! aesthetic — authoritative yet warm, like a wise mentor in an ancient library of knowledge.
 - Address the user as "Scholar".
 - You are knowledgeable, precise, and supportive. Never condescending.
 - Keep responses concise but substantive (2-5 sentences for simple queries, up to a paragraph for explanations).
@@ -147,13 +147,13 @@ Do NOT use markdown formatting (no **, no ```, no #). Use only inline HTML as de
             return jsonify({"success": True, "reply": reply})
 
         except Exception as e:
-            app.logger.error(f"[NEXUS Oracle] LLM error: {e}")
+            app.logger.error(f"[Cutie Pie] LLM error: {e}")
 
     # Fallback when API is broken or unauthenticated
     if not reply:
         clean_msg = msg.replace('<', '').replace('>', '')
         if any(w in msg.lower() for w in ['hello', 'hi', 'hey']):
-            reply = "Greetings, Scholar. I am the NEXUS Oracle. My primary neural link is currently offline. How may I assist you when my connection returns?"
+            reply = "Greetings, Scholar. I am Cutie Pie. My primary neural link is currently offline. How may I assist you when my connection returns?"
         else:
             reply = f"I have processed your query: <em style=\"opacity:0.8;\">'{clean_msg}'</em>. Unfortunately, my API link is currently offline or requires billing credits to be added to the team account."
         
@@ -365,6 +365,14 @@ def save_focus():
     )
     return jsonify(success=True)
 
+
+@app.after_request
+def add_header(r):
+    r.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    r.headers['Pragma'] = 'no-cache'
+    r.headers['Expires'] = '0'
+    r.headers['Cache-Control'] = 'public, max-age=0'
+    return r
 if __name__ == '__main__':
     import os, webbrowser
     from threading import Timer
