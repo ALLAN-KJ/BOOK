@@ -21,8 +21,10 @@
     --blue: #6aacf0;
 
     /* Responsive book size — fills viewport nicely on all screens */
-    --book-w: min(45vw, 700px);
-    --book-h: min(85vh, 800px);
+    --book-w: 400px;
+    --book-h: 600px;
+    --book-w-open: min(45vw, 700px);
+    --book-h-open: min(85vh, 800px);
     /* 4K UHD scale bump */
     --fs-scale: clamp(0.78rem, 1.1vw, 1.4rem);
 }
@@ -247,8 +249,10 @@ body {
 /* ── RESPONSIVE BREAKPOINTS ── */
 @media(max-width:600px) {
     :root {
-        --book-w: 93vw;
-        --book-h: 80vh;
+        --book-w: 240px;
+        --book-w-open: 93vw;
+        --book-h: 360px;
+        --book-h-open: 80vh;
     }
 
     #book {
@@ -283,8 +287,10 @@ body {
 
 @media(min-width:601px) and (max-width:1024px) {
     :root {
-        --book-w: 60vw;
-        --book-h: 83vh;
+        --book-w: 300px;
+        --book-w-open: 60vw;
+        --book-h: 450px;
+        --book-h-open: 83vh;
     }
 
     #alien-wrap {
@@ -295,8 +301,10 @@ body {
 
 @media(min-width:2560px) {
     :root {
-        --book-w: 42vw;
-        --book-h: 86vh;
+        --book-w: 500px;
+        --book-w-open: 42vw;
+        --book-h: 750px;
+        --book-h-open: 86vh;
     }
 
     .pi {
@@ -1831,10 +1839,9 @@ body.theme-emerald {
                 <div class="ctx"></div>
                 <div class="cfr"><span class="cfr-tl"></span><span class="cfr-tr"></span><span class="cfr-bl"></span><span class="cfr-br"></span></div>
                 <div class="psh-r"></div>
-                <div class="cin">
-                    <div class="crest"><span class="crest-n">★</span></div>
-                    <div class="ctit">THANK YOUU!!!</div>
-                    
+                <div class="cin" style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%;">
+                    <div class="crest" style="width:55px; height:55px; border-radius: 50%; border: 2px dashed var(--gold); margin-bottom: 25px;"><span class="crest-n" style="font-size:1.8rem; rotate:45deg;">⚜</span></div>
+                    <div class="ctit" style="font-size: clamp(2.2rem, 3.8vw, 4.5rem);">THANK YOU!!</div>
                 </div>
             </div>
         </div>
@@ -2061,10 +2068,11 @@ window.openBook=function() {
     });
 
 tl.to('#book', {
-    x: '50%', duration:1.1, ease:'power3.inOut'
-}
-
-, 0);
+    x: '50%', width: 'var(--book-w-open)', height: 'var(--book-h-open)', duration:1.1, ease:'power3.inOut'
+}, 0);
+tl.to('.page', {
+    width: 'var(--book-w-open)', height: 'var(--book-h-open)', duration:1.1, ease:'power3.inOut'
+}, 0);
 
 tl.to('#p0', {
 
@@ -2076,11 +2084,11 @@ tl.to('#p0', {
 
 , 0.1);
 
-tl.to(['#p1', '#p2', '#p3', '#p4', '#p5', '#p6', '#p7', '#p8', '#p9'], {
+tl.to(['#p1', '#p2', '#p3', '#p4', '#p5', '#p6', '#p7', '#p8', '#p9', '#p10', '#p11'], {
 
     rotationY:-180, stagger:0.06, duration:0.55, ease:'power2.in',
     onUpdate() {
-        ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9'].forEach((id, i)=> {
+        ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10', 'p11'].forEach((id, i)=> {
                 const el=document.getElementById(id); if(el&&gsap.getProperty(el, 'rotationY')<-90)el.style.zIndex=23+i;
             });
     }
@@ -2108,20 +2116,24 @@ window.unturnPage = function(idx) {
 };
 
 window.closeBook = function() {
-    // 1. Unturn all pages sequentially or simultaneously
-    for(let i = 1; i <= 5; i++) {
+    for(let i = 1; i <= 11; i++) {
         gsap.to('#p' + i, {rotationY: 0, duration: 1.2, ease: 'power2.inOut'});
     }
-    
-    // 2. Close the front cover
     gsap.to('#p0', {rotationY: 0, duration: 1.2, ease: 'power2.inOut', delay: 0.5});
     
-    // 3. Rotate the whole book by 180deg to show the back cover
-    // Currently openBook rotates #book x: 50%, rotationY: 0 (from -25deg hover).
-    // The back cover is at rotationY: 180deg.
     gsap.to('#book', {
         x: '0%', 
         rotationY: -180, 
+        width: 'var(--book-w)',
+        height: 'var(--book-h)',
+        duration: 1.5, 
+        ease: 'power3.inOut', 
+        delay: 1.2
+    });
+    
+    gsap.to('.page', {
+        width: 'var(--book-w)',
+        height: 'var(--book-h)',
         duration: 1.5, 
         ease: 'power3.inOut', 
         delay: 1.2
