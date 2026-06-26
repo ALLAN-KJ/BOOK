@@ -1742,9 +1742,89 @@ body.theme-emerald {
 </div>
 
 
-<!-- DYNAMIC PAGES CONTAINER -->
-<div id="dynamic-pages"></div>
-<!-- #book --></div><!-- #scene --><script>
+
+
+        <!-- PAGE 2 -->
+        <div class="page" id="p2" style="z-index: 8;">
+            <div class="face pbg">
+                <div class="psh"></div>
+                <div class="pi">
+                    <div class="ph"><span class="ph-t">Blank Page</span></div>
+                    <div id="p2-content"></div>
+                    <div style="position:absolute; bottom: 30px; right: 30px;"><button class="csend" onclick="turnPage(2)">Next Page ➔</button></div>
+                </div>
+            </div>
+            <div class="face back pbg">
+                <div class="psh-r"></div>
+                <div class="pi">
+                    <div class="ph"><span class="ph-t">Blank Page</span></div>
+                    <div style="position:absolute; bottom: 30px; left: 30px;"><button class="csend" onclick="unturnPage(2)">⬅ Prev Page</button></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE 3 -->
+        <div class="page" id="p3" style="z-index: 7;">
+            <div class="face pbg">
+                <div class="psh"></div>
+                <div class="pi">
+                    <div class="ph"><span class="ph-t">Blank Page</span></div>
+                    <div id="p3-content"></div>
+                    <div style="position:absolute; bottom: 30px; right: 30px;"><button class="csend" onclick="turnPage(3)">Next Page ➔</button></div>
+                </div>
+            </div>
+            <div class="face back pbg">
+                <div class="psh-r"></div>
+                <div class="pi">
+                    <div class="ph"><span class="ph-t">Blank Page</span></div>
+                    <div style="position:absolute; bottom: 30px; left: 30px;"><button class="csend" onclick="unturnPage(3)">⬅ Prev Page</button></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE 4 -->
+        <div class="page" id="p4" style="z-index: 6;">
+            <div class="face pbg">
+                <div class="psh"></div>
+                <div class="pi">
+                    <div class="ph"><span class="ph-t">Blank Page</span></div>
+                    <div id="p4-content"></div>
+                    <div style="position:absolute; bottom: 30px; right: 30px;"><button class="csend" onclick="turnPage(4)">Next Page ➔</button></div>
+                </div>
+            </div>
+            <div class="face back pbg">
+                <div class="psh-r"></div>
+                <div class="pi">
+                    <div class="ph"><span class="ph-t">Blank Page</span></div>
+                    <div style="position:absolute; bottom: 30px; left: 30px;"><button class="csend" onclick="unturnPage(4)">⬅ Prev Page</button></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- PAGE 5 (LAST PAGE & BACK COVER) -->
+        <div class="page" id="p5" style="z-index: 5;">
+            <div class="face pbg">
+                <div class="psh"></div>
+                <div class="pi">
+                    <div class="ph"><span class="ph-t">The End</span></div>
+                    <div id="p5-content" style="text-align:center; margin-top:50px; font-size:1.2rem;">You have reached the end of the Tome.</div>
+                    <div style="position:absolute; bottom:30px; left:0; right:0; text-align:center;">
+                        <button class="csend" style="padding: 15px 30px; font-size: 1.2rem;" onclick="closeBook()">Close Tome</button>
+                    </div>
+                </div>
+            </div>
+            <div class="face back cover">
+                <div class="ctx"></div>
+                <div class="cfr"><span class="cfr-br">♦</span><span class="cfr-tr">♦</span><span class="cfr-bl">♦</span></div>
+                <div class="psh-r"></div>
+                <div class="cin">
+                    <div class="crest"><span class="crest-n">★</span></div>
+                    <div class="ctit">THANK YOUU!!!</div>
+                </div>
+            </div>
+        </div>
+
+    <!-- #book --></div><!-- #scene --><script>
 
 
 window.setAlienExpression = function(expr) {
@@ -2014,8 +2094,7 @@ window.unturnPage = function(idx) {
 
 window.closeBook = function() {
     // 1. Unturn all pages sequentially or simultaneously
-    const total = window.totalDynamicPages ? window.totalDynamicPages + 1 : 4;
-    for(let i = 1; i <= total; i++) {
+    for(let i = 1; i <= 5; i++) {
         gsap.to('#p' + i, {rotationY: 0, duration: 1.2, ease: 'power2.inOut'});
     }
     
@@ -2209,17 +2288,14 @@ window.generateTome = async function() {
 };
 
 window.renderSyllabus = function() {
-    const container = document.getElementById('dynamic-pages');
-    container.innerHTML = '';
-    
     if(!window.syllabusData || window.syllabusData.length === 0) return;
-    
-    let html = '';
-    const totalPages = window.syllabusData.length;
     
     window.syllabusData.forEach((pageData, i) => {
         const pageNum = i + 2; // p2, p3, p4...
-        const zIndex = 10 - pageNum; // decreases
+        if(pageNum > 5) return; // limit to hardcoded pages for now
+        
+        const contentDiv = document.getElementById('p' + pageNum + '-content');
+        if(!contentDiv) return;
         
         let topicsHtml = '';
         pageData.topics.forEach(t => {
@@ -2230,51 +2306,12 @@ window.renderSyllabus = function() {
             </div>`;
         });
         
-        const isLastPage = (i === totalPages - 1);
+        const pageEl = document.getElementById('p' + pageNum);
+        const headerEl = pageEl.querySelector('.ph-t');
+        if(headerEl) headerEl.textContent = pageData.title;
         
-        // Next button on front face (except last page which has Close Tome)
-        let nextBtn = isLastPage 
-            ? `<div style="position:absolute; bottom:30px; left:0; right:0; text-align:center;"><button class="csend" style="padding: 15px 30px; font-size: 1.2rem;" onclick="closeBook()">Close Tome</button></div>`
-            : `<div style="position:absolute; bottom: 30px; right: 30px;"><button class="csend" onclick="turnPage(${pageNum})">Next Page ➔</button></div>`;
-            
-        // Back Cover HTML if last page, otherwise normal back page
-        let backFace = isLastPage
-            ? `
-            <div class="face back cover">
-                <div class="ctx"></div>
-                <div class="cfr"><span class="cfr-br">♦</span><span class="cfr-tr">♦</span><span class="cfr-bl">♦</span></div>
-                <div class="psh-r"></div>
-                <div class="cin">
-                    <div class="crest" style="margin-top:20%;"><span class="crest-n">★</span></div>
-                    <div class="ctit" style="font-size: 3rem; margin-top: 30px; color: var(--gold); text-shadow: 0 0 20px rgba(201,168,76,0.5);">THANK YOUU!!!</div>
-                </div>
-            </div>`
-            : `
-            <div class="face back pbg">
-               <div class="psh-r"></div>
-               <div class="pi">
-                   <div class="ph"><span class="ph-t">Blank Page</span></div>
-                   <div style="position:absolute; bottom: 30px; left: 30px;"><button class="csend" onclick="unturnPage(${pageNum})">⬅ Prev Page</button></div>
-               </div>
-            </div>`;
-
-        html += `
-        <div class="page" id="p${pageNum}" style="z-index:${zIndex};">
-            <div class="face pbg">
-                <div class="psh"></div>
-                <div class="pi">
-                    <div class="ph" style="margin-bottom:20px;"><span class="ph-t">${pageData.title}</span></div>
-                    ${topicsHtml}
-                    ${nextBtn}
-                </div>
-            </div>
-            ${backFace}
-        </div>
-        `;
+        contentDiv.innerHTML = topicsHtml;
     });
-    
-    container.innerHTML = html;
-    window.totalDynamicPages = totalPages;
 };
 
 window.loginAttempts = 0;
