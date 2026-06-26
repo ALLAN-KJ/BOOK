@@ -1356,6 +1356,7 @@ body {
    with your own asset — keep #alien wrapper
 ═══════════════════════════════════════════ */
 #alien-wrap {
+    transition: bottom 0.8s ease-in-out;
     position: fixed;
     right: 8%;
     bottom: 12%;
@@ -1484,7 +1485,7 @@ body {
 
 /* Death — hit by laser */
 #alien-body.dying {
-    animation: alienDie 0.9s ease-out forwards !important;
+    animation: alienDie 3s ease-out forwards !important;
 }
 
 @keyframes alienDie {
@@ -1654,41 +1655,138 @@ body {
     text-transform: uppercase;
 }
 
+/* Oracle thinking dots animation */
+.oracle-dots {
+    display: inline-block;
+    animation: oraclePulse 1.2s ease-in-out infinite;
+    color: var(--gold);
+    letter-spacing: 0.15em;
+}
+
+@keyframes oraclePulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; }
+}
+
+
+body.theme-ruby {
+  --gold: #d4c0b4;
+  --bg: #1a0808;
+  --page-bg: #ebd6d6;
+  --page-border: #804040;
+}
+body.theme-emerald {
+  --gold: #cd7f32;
+  --bg: #05140f;
+  --page-bg: #d1e0d7;
+  --page-border: #4d7358;
+}
 </style></head><body><!-- LOADER --><div id="loader"><div class="lt">NEXUS</div><div class="ls">Grand Tome Theatre</div><div class="lbar"><div class="lfill"></div></div><div class="lsub">Independent Scholar</div></div><canvas id="threeCanvas"></canvas><div id="vr-frame"></div><div id="scanlines"></div><!-- ═══════════════════════════════════════════ CUSTOM SPACESHIP CURSOR SWAP TIP: Replace the <svg>inside #ship with: <img src="your-spaceship.png" style="width:100%;height:100%;">═══════════════════════════════════════════ --><div id="ship"><svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><!-- Main hull --><ellipse cx="24" cy="22" rx="7" ry="14" fill="#a0c8ff" opacity="0.95" /><!-- Cockpit dome --><ellipse cx="24" cy="16" rx="5" ry="6" fill="#d0eeff" opacity="0.9" /><!-- Inner cockpit glow --><ellipse cx="24" cy="15" rx="3" ry="4" fill="#60b0ff" opacity="0.7" /><!-- Left wing --><path d="M17 26 L8 34 L16 30 Z" fill="#7090c0" opacity="0.9" /><!-- Right wing --><path d="M31 26 L40 34 L32 30 Z" fill="#7090c0" opacity="0.9" /><!-- Left engine pod --><ellipse cx="13" cy="32" rx="3.5" ry="2" fill="#5070a0" /><!-- Right engine pod --><ellipse cx="35" cy="32" rx="3.5" ry="2" fill="#5070a0" /><!-- Engine glow left --><ellipse cx="13" cy="34" rx="2.5" ry="1.5" fill="#40ffcc" opacity="0.8" /><!-- Engine glow right --><ellipse cx="35" cy="34" rx="2.5" ry="1.5" fill="#40ffcc" opacity="0.8" /><!-- Center engine --><ellipse cx="24" cy="36" rx="3" ry="2" fill="#40ffcc" opacity="0.9" /><!-- Hull detail lines --><line x1="24" y1="10" x2="24" y2="36" stroke="#6090d0" stroke-width="0.5" opacity="0.4" /><line x1="18" y1="22" x2="30" y2="22" stroke="#6090d0" stroke-width="0.5" opacity="0.4" /><!-- Rim glow --><ellipse cx="24" cy="22" rx="7" ry="14" stroke="#80d0ff" stroke-width="0.8" opacity="0.5" fill="none" /></svg></div><!-- ═══════════════════════════════════════════ TRACTOR BEAM (shown on success) ═══════════════════════════════════════════ --><div id="beam"></div><!-- ═══════════════════════════════════════════ RED LASER (shown on fail) ═══════════════════════════════════════════ --><div id="laser"></div><!-- ═══════════════════════════════════════════ ALIEN CHARACTER (right side) SWAP TIP: Replace SVG inside #alien-body with your own asset. Keep the #alien-wrap and #alien-body divs as-is so animations work. ═══════════════════════════════════════════ -->
-<div id="alien-chat-container" style="position: absolute; right: 2%; bottom: 3%; width: 250px; z-index: 100; display: flex; flex-direction: column; align-items: flex-end; pointer-events: none;">
-    <div id="alien-bubble" style="display: none; background: rgba(20, 25, 40, 0.85); border: 1px solid var(--gold); border-radius: 8px 8px 0px 8px; padding: 12px; margin-bottom: 10px; font-family: 'Inter', sans-serif; font-size: 0.85rem; color: var(--text); box-shadow: 0 4px 15px rgba(0,0,0,0.5); backdrop-filter: blur(4px); pointer-events: auto; max-width: 250px; text-align: left; line-height: 1.4;">
+<div id="alien-chat-container" style="position: fixed; right: 5%; bottom: 3%; width: 250px; z-index: 100; display: flex; flex-direction: column; align-items: flex-end; pointer-events: none;">
+    <div id="alien-bubble" style="display: none; background: rgba(20, 25, 40, 0.85); border: 1px solid var(--gold); border-radius: 8px 8px 8px 0px; padding: 12px; margin-bottom: 10px; font-family: 'Inter', sans-serif; font-size: 0.85rem; color: var(--text); box-shadow: 0 4px 15px rgba(0,0,0,0.5); backdrop-filter: blur(4px); pointer-events: auto; max-width: 250px; text-align: left; line-height: 1.4;">
         <span id="alien-bubble-text"></span>
     </div>
     <input type="text" id="alien-chat-input" placeholder="Ask Xeno..." style="width: 200px; padding: 8px 12px; background: rgba(0,0,0,0.6); border: 1px solid rgba(201,168,76,0.3); border-radius: 20px; color: var(--gold); outline: none; font-family: 'Inter', sans-serif; font-size: 0.8rem; backdrop-filter: blur(4px); pointer-events: auto; transition: all 0.3s ease; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
 </div>
 <div id="alien-wrap">
-<div id="alien-body"><svg viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg" width="90" height="90"><!-- Body --><ellipse cx="45" cy="58" rx="20" ry="22" fill="#5dde8a" opacity="0.95" /><!-- Belly shine --><ellipse cx="45" cy="60" rx="10" ry="12" fill="#80eea8" opacity="0.4" /><!-- Head --><ellipse cx="45" cy="34" rx="22" ry="20" fill="#5dde8a" /><!-- Head shine --><ellipse cx="38" cy="26" rx="7" ry="5" fill="#a0f0c0" opacity="0.4" /><!-- Left big eye --><ellipse cx="35" cy="32" rx="9" ry="10" fill="white" /><ellipse cx="35" cy="33" rx="6" ry="7" fill="#1a1a3a" /><ellipse cx="33" cy="31" rx="2" ry="2.5" fill="white" opacity="0.8" /><!-- Right big eye --><ellipse cx="55" cy="32" rx="9" ry="10" fill="white" /><ellipse cx="55" cy="33" rx="6" ry="7" fill="#1a1a3a" /><ellipse cx="53" cy="31" rx="2" ry="2.5" fill="white" opacity="0.8" /><!-- Smile --><path d="M38 46 Q45 52 52 46" stroke="#2a8050" stroke-width="2" fill="none" stroke-linecap="round" /><!-- Antennae left --><line x1="34" y1="14" x2="28" y2="4" stroke="#5dde8a" stroke-width="2.5" stroke-linecap="round" /><circle cx="27" cy="3" r="3" fill="#ff80ff" /><!-- Antennae right --><line x1="56" y1="14" x2="62" y2="4" stroke="#5dde8a" stroke-width="2.5" stroke-linecap="round" /><circle cx="63" cy="3" r="3" fill="#ff80ff" /><!-- Left arm --><path d="M26 56 Q16 62 18 70" stroke="#5dde8a" stroke-width="5" fill="none" stroke-linecap="round" /><circle cx="18" cy="71" r="4" fill="#5dde8a" /><!-- Right arm --><path d="M64 56 Q74 62 72 70" stroke="#5dde8a" stroke-width="5" fill="none" stroke-linecap="round" /><circle cx="72" cy="71" r="4" fill="#5dde8a" /><!-- Left leg --><path d="M38 78 Q35 86 32 88" stroke="#5dde8a" stroke-width="5" fill="none" stroke-linecap="round" /><ellipse cx="30" cy="88" rx="5" ry="2.5" fill="#4ab870" /><!-- Right leg --><path d="M52 78 Q55 86 58 88" stroke="#5dde8a" stroke-width="5" fill="none" stroke-linecap="round" /><ellipse cx="60" cy="88" rx="5" ry="2.5" fill="#4ab870" /><!-- Spots --><circle cx="40" cy="62" r="2" fill="#4ab870" opacity="0.6" /><circle cx="50" cy="65" r="1.5" fill="#4ab870" opacity="0.6" /><circle cx="45" cy="68" r="1.5" fill="#4ab870" opacity="0.6" /></svg></div><div id="alien-label">Xeno · Unit 14</div></div><div class="hc" id="hc1"></div><div class="hc" id="hc2"></div><div class="hc" id="hc3"></div><div class="hc" id="hc4"></div><div id="hud-top"><div class="hl"></div><div class="ht">Nexus · Grand Tome Theatre</div><div class="hl r"></div></div><div id="hud-bot"><div class="hs"><span class="hdot"></span>System Online</div><div class="hs">Allan K J · Scholar IV</div><div class="hs">Independent Scholar</div><div class="hs">JWT · AES-256 · Active</div></div><!-- BOOK --><div id="scene"><div id="book" class="idle"><!-- ══════════════════════════════════════════════════ PAGE 0 — COVER (front)+MODULE 1 LEFT (back) Module 1: Authentication & Identity ══════════════════════════════════════════════════ --><div class="page" id="p0" style="z-index:10;"><!-- COVER FRONT --><div class="face cover"><div class="ctx"></div><div class="cfr"><span class="cfr-br">✦</span><span class="cfr-tr">✦</span><span class="cfr-bl">✦</span></div><div class="psh"></div><div class="cin"><div class="crest"><span class="crest-n">N</span></div><div class="ctit">NEXUS</div><div class="csub">Academic Master Tome · v4.1</div><div class="cedt">Grand Theatre Edition</div><div class="cln"></div><div class="team-badge">Independent Scholar</div><div class="la"><div class="fw"><div class="fl">Scholar Identifier</div><input class="ui" type="text" value="Allan K J" readonly></div><div class="fw"><div class="fl">Access Cipher</div><input class="ui" type="password" placeholder="Enter password…"></div><button class="btu" id="unlockBtn" onclick="checkPassword()">✦ Unlock Tome ✦</button><div class="cln2"></div><div style="font-size:0.46rem;color:rgba(201,168,76,0.22);text-align:center;margin-top:8px;letter-spacing:0.13em;">SECURED · AES-256 · JWT PROTOCOL</div></div></div></div><!-- MODULE 1 — LEFT PAGE --><div class="face back pbg"><div class="psh"></div><div class="pi"><div class="ph"><span class="ph-t">Authentication</span><span class="ph-tag">Mod · 01 · L</span></div><div class="tbanner"><span class="ticon">🔐</span><span class="tlbl">Module 1 — Authentication &amp;
-Identity</span></div><div class="avatar">A</div><div style="text-align:center;margin-bottom:11px;"><div style="font-family:'Cormorant Garamond',serif;font-size:clamp(1rem,1.3vw,1.55rem);color:var(--gold-bright);margin-bottom:3px;">Allan K J</div><div style="font-size:clamp(0.54rem,0.72vw,0.88rem);color:var(--text-dim);margin-bottom:6px;">Independent Scholar</div><div style="display:flex;justify-content:center;gap:5px;flex-wrap:wrap;"><span class="badge green">● Active</span><span class="badge gold">Admin</span><span class="badge blue">Scholar IV</span></div></div><div class="slbl" style="margin-top:0;">Identity Credentials</div><div class="card"><div class="row"><span class="rk">🔑 Protocol</span><span class="rv gr">JWT · RSA-256 · Verified</span></div><div class="row"><span class="rk">🛡 Encryption</span><span class="rv gr">AES-256 · End-to-End</span></div><div class="row"><span class="rk">⚡ Session</span><span class="rv">IST · Live · 2h 14m</span></div><div class="row"><span class="rk">🎓 Clearance</span><span class="rv g">Level IV · Full Access</span></div><div class="row"><span class="rk">🖥 2FA</span><span class="rv gr">TOTP · Enabled</span></div></div><div class="slbl">Access History</div><div class="tline"><div class="titem"><div class="titem-t">Login · Chrome · IST 09:12</div><div class="titem-s">IP 49.2x.xx · Today</div></div><div class="titem"><div class="titem-t">Password rotated</div><div class="titem-s">Policy: 90-day cycle · 3d ago</div></div><div class="titem"><div class="titem-t">New device registered</div><div class="titem-s">MacBook Air · 1w ago</div></div></div><div class="pnav"><span></span><span class="pnp">01 · L</span><button class="pnb" onclick="turnPage(0)">Identity →</button></div></div></div></div><!-- ══════════════════════════════════════════════════ PAGE 1 — MODULE 1 RIGHT (front)+MODULE 2 LEFT (back) Module 1 Right: Identity continued Module 2 Left: Student Learning Hub ══════════════════════════════════════════════════ --><div class="page" id="p1" style="z-index:9;"><!-- MODULE 1 — RIGHT PAGE --><div class="face pbg"><div class="psh"></div><div class="pi"><div class="ph"><span class="ph-t">Identity · Deep Dive</span><span class="ph-tag">Mod · 01 · R</span></div><div class="tbanner"><span class="ticon">🔐</span><span class="tlbl">Module 1 — Authentication &amp;
-Identity</span></div><div class="g2"><div class="sc"><span class="sv" style="color:var(--green);">✓</span><span class="slb">OAuth 2.0</span></div><div class="sc"><span class="sv" style="color:var(--gold);">256</span><span class="slb">Bit Key</span></div></div><div class="slbl">Role Permissions</div><div class="card"><div class="row"><span class="rk">📚 Course Access</span><span class="rv gr">All Modules</span></div><div class="row"><span class="rk">📊 Analytics View</span><span class="rv gr">Full Dashboard</span></div><div class="row"><span class="rk">👥 User Management</span><span class="rv g">Admin Rights</span></div><div class="row"><span class="rk">📋 Grade Override</span><span class="rv g">Permitted</span></div><div class="row"><span class="rk">🔧 System Config</span><span class="rv g">Level IV</span></div></div><div class="slbl">Security Score</div><div class="card"><div class="cbar"><div class="cbar-l">Auth Strength</div><div class="cbar-t"><div class="cbar-f" style="width:96%;"></div></div><div class="cbar-v">96%</div></div><div class="cbar"><div class="cbar-l">2FA Coverage</div><div class="cbar-t"><div class="cbar-f" style="width:100%;"></div></div><div class="cbar-v">100%</div></div><div class="cbar"><div class="cbar-l">Token Health</div><div class="cbar-t"><div class="cbar-f" style="width:88%;background:linear-gradient(90deg,#4a80d0,#7ab0f0);"></div></div><div class="cbar-v">88%</div></div></div><div class="pnav"><button class="pnb" onclick="unturnPage(0)">← Auth</button><span class="pnp">01 · R</span><button class="pnb" onclick="turnPage(1)">Module 2 →</button></div></div></div><!-- MODULE 2 — LEFT PAGE --><div class="face back pbg"><div class="psh-r"></div><div class="pi"><div class="ph"><span class="ph-t">Learning Hub</span><span class="ph-tag">Mod · 02 · L</span></div><div class="tbanner"><span class="ticon">📚</span><span class="tlbl">Module 2 — Student Learning Hub</span></div><div class="g3"><div class="sc"><span class="sv">03</span><span class="slb">Enrolled</span></div><div class="sc"><span class="sv" style="color:var(--red);font-size:1rem;padding-top:5px;">48h</span><span class="slb">Due Soon</span></div><div class="sc"><span class="sv" style="color:var(--green);">92%</span><span class="slb">Top Score</span></div></div><div class="ann"><div style="font-size:clamp(0.48rem,0.64vw,0.78rem);color:var(--red);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:3px;">⚠ Urgent Deadline</div><div style="font-size:0.74rem;color:var(--text);font-weight:500;">Python Operator Overloading</div><div style="font-size:clamp(0.52rem,0.7vw,0.85rem);color:var(--text-dim);margin-top:2px;">Practicum · Auto-graded submission portal open</div></div><div class="slbl">Course Progress</div><div class="card"><div class="cbar"><div class="cbar-l">Cybersecurity</div><div class="cbar-t"><div class="cbar-f" style="width:92%;"></div></div><div class="cbar-v">92%</div></div><div class="cbar"><div class="cbar-l">IoT Sensors</div><div class="cbar-t"><div class="cbar-f" style="width:78%;background:linear-gradient(90deg,#4a80d0,#7ab0f0);"></div></div><div class="cbar-v">78%</div></div><div class="cbar"><div class="cbar-l">Adv. Python</div><div class="cbar-t"><div class="cbar-f" style="width:45%;background:linear-gradient(90deg,#c04060,#e07090);"></div></div><div class="cbar-v">45%</div></div></div><div class="slbl">Recent Activity</div><div class="tline"><div class="titem"><div class="titem-t">Quiz — Kali Linux Recon · 18/20</div><div class="titem-s">Today · 09:42 IST</div></div><div class="titem"><div class="titem-t">DHT22 Lab video · 18:40</div><div class="titem-s">Module 4 · Yesterday</div></div></div><div class="pnav"><button class="pnb" onclick="unturnPage(1)">← Module 1</button><span class="pnp">02 · L</span><button class="pnb" onclick="turnPage(1)">Hub →</button></div></div></div></div><!-- ══════════════════════════════════════════════════ PAGE 2 — MODULE 2 RIGHT (front)+MODULE 3 LEFT (back) Module 2 Right: Instructor View Module 3 Left: Platform Administration ══════════════════════════════════════════════════ --><div class="page" id="p2" style="z-index:8;"><!-- MODULE 2 — RIGHT PAGE --><div class="face pbg"><div class="psh"></div><div class="pi"><div class="ph"><span class="ph-t">Instructor View</span><span class="ph-tag">Mod · 02 · R</span></div><div class="tbanner"><span class="ticon">📚</span><span class="tlbl">Module 2 — Student Learning Hub</span></div><div class="g2"><div class="sc"><span class="sv">142</span><span class="slb">Students</span></div><div class="sc"><span class="sv" style="color:var(--red);">28</span><span class="slb">To Grade</span></div></div><div class="slbl">Cohort Analytics</div><div class="card"><div class="row"><span class="rk">📊 Avg. Quiz Score</span><span class="rv g">84.2%</span></div><div class="row"><span class="rk">💬 Forum Posts</span><span class="rv gr">94 this week</span></div><div class="row"><span class="rk">✅ Completion Rate</span><span class="rv">67%</span></div><div class="row"><span class="rk">⚠ At-Risk</span><span class="rv w">3 flagged</span></div><div class="row"><span class="rk">⏱ Avg. Session</span><span class="rv b">42 min</span></div></div><div class="slbl">Top Performers</div><div class="card"><div class="row"><span class="rk">🥇 Priya R.</span><span class="rv g">98% · IoT</span></div><div class="row"><span class="rk">🥈 Karthik M.</span><span class="rv">95% · Kali</span></div><div class="row"><span class="rk">🥉 Sneha L.</span><span class="rv">91% · Python</span></div></div><button class="bgh" style="width:100%;margin-top:5px;">↗ Manage Assessments</button><div class="pnav"><button class="pnb" onclick="unturnPage(1)">← Hub</button><span class="pnp">02 · R</span><button class="pnb" onclick="turnPage(2)">Module 3 →</button></div></div></div><!-- MODULE 3 — LEFT PAGE --><div class="face back pbg"><div class="psh-r"></div><div class="pi"><div class="ph"><span class="ph-t">Admin Command</span><span class="ph-tag">Mod · 03 · L</span></div><div class="tbanner"><span class="ticon">⚙️</span><span class="tlbl">Module 3 — Platform Administration</span></div><div class="g2"><div class="sc"><span class="sv" style="color:var(--green);font-size:0.75rem;padding-top:7px;">● ONLINE</span><span class="slb">System</span></div><div class="sc"><span class="sv">8,
-402</span><span class="slb">Users</span></div></div><div class="g2"><div class="sc"><span class="sv" style="color:var(--gold);">24%</span><span class="slb">CPU Load</span></div><div class="sc"><span class="sv" style="color:var(--blue);">12ms</span><span class="slb">Latency</span></div></div><div class="slbl">Infrastructure</div><div class="card"><div class="row"><span class="rk">🚨 Flagged</span><span class="rv gr">0 incidents</span></div><div class="row"><span class="rk">🗄 DB</span><span class="rv gr">Pooled · Active</span></div><div class="row"><span class="rk">🔄 Last Deploy</span><span class="rv">v4.1.3 · 06:42</span></div><div class="row"><span class="rk">💾 Storage</span><span class="rv">2.4 / 10 TB</span></div></div><div class="slbl">Event Log</div><div class="card" style="font-size:clamp(0.54rem,0.72vw,0.88rem);line-height:1.75;color:var(--text-dim);"><div><span style="color:var(--green);">●</span>Embedded Sys 2026 batch enrolled</div><div><span style="color:var(--gold);">●</span>Cert issued: Riya M. · IoT Advanced</div><div><span style="color:var(--red);">●</span>Auth anomaly resolved · 06:42 IST</div></div><div class="pnav"><button class="pnb" onclick="unturnPage(2)">← Module 2</button><span class="pnp">03 · L</span><button class="pnb" onclick="turnPage(2)">Admin →</button></div></div></div></div><!-- ══════════════════════════════════════════════════ PAGE 3 — MODULE 3 RIGHT (front)+MODULE 4 LEFT (back) Module 3 Right: Course Forge Module 4 Left: Content Engine ══════════════════════════════════════════════════ --><div class="page" id="p3" style="z-index:7;"><!-- MODULE 3 — RIGHT PAGE --><div class="face pbg"><div class="psh"></div><div class="pi"><div class="ph"><span class="ph-t">Course Forge</span><span class="ph-tag">Mod · 03 · R</span></div><div class="tbanner"><span class="ticon">⚙️</span><span class="tlbl">Module 3 — Platform Administration</span></div><div class="card" style="border:1px dashed rgba(201,168,76,0.3);text-align:center;padding:12px;cursor:pointer;margin-bottom:6px;"><div style="font-size:1.4rem;color:var(--gold);margin-bottom:3px;">+</div><div style="font-size:clamp(0.5rem,0.68vw,0.82rem);letter-spacing:0.16em;text-transform:uppercase;color:var(--text-dim);">Forge New Course Module</div></div><div class="slbl">Draft Catalogue</div><div class="card"><div class="row"><span class="rk">IoT Advanced Mechanics</span><span class="rv pill gold">Draft</span></div><div class="row"><span class="rk">Embedded Systems Lab</span><span class="rv pill" style="color:var(--green);">Active</span></div><div class="row"><span class="rk">ML Fundamentals</span><span class="rv pill" style="color:var(--blue);">Review</span></div><div class="row"><span class="rk">Network Security Pro</span><span class="rv pill" style="color:var(--red);">Paused</span></div></div><div class="slbl">Curriculum Builder</div><div class="card"><div class="row"><span class="rk">🎯 Learning Outcomes</span><span class="rv gr">AI-Generated</span></div><div class="row"><span class="rk">📋 Assessment Bank</span><span class="rv">142 questions</span></div><div class="row"><span class="rk">🔗 Prerequisite Map</span><span class="rv g">Configured</span></div></div><div class="pnav"><button class="pnb" onclick="unturnPage(2)">← Admin</button><span class="pnp">03 · R</span><button class="pnb" onclick="turnPage(3)">Module 4 →</button></div></div></div><!-- MODULE 4 — LEFT PAGE --><div class="face back pbg"><div class="psh-r"></div><div class="pi"><div class="ph"><span class="ph-t">Content Engine</span><span class="ph-tag">Mod · 04 · L</span></div><div class="tbanner"><span class="ticon">🎬</span><span class="tlbl">Module 4 — Content &amp;
-Media Library</span></div><div class="vstub"><div class="pbtn">▶</div><div class="vlbl">DHT22 Sensor → ThingSpeak MQTT</div><div class="vtime">11:08 / 18:40</div><div class="vprog"><div class="vpbar"></div></div></div><div class="card" style="margin-bottom:6px;"><div class="row"><span class="rk">🎞 Quality</span><span class="rv gr">1080p · HLS</span></div><div class="row"><span class="rk">📝 Subtitles</span><span class="rv gr">Auto · EN / தமிழ்</span></div><div class="row"><span class="rk">📌 Bookmarks</span><span class="rv g">3 saved</span></div></div><div class="slbl">Lecture Resources</div><div class="g2" style="gap:5px;margin-bottom:5px;"><button class="bgh">↓ PDF Notes</button><button class="bgh">↓ Lab Slides</button></div><div class="g2" style="gap:5px;"><button class="bgh wine">⚙ Jupyter NB</button><button class="bgh wine">📁 Code Repo</button></div><div class="pnav"><button class="pnb" onclick="unturnPage(3)">← Module 3</button><span class="pnp">04 · L</span><button class="pnb" onclick="turnPage(3)">Content →</button></div></div></div></div><!-- ══════════════════════════════════════════════════ PAGE 4 — MODULE 4 RIGHT (front)+MODULE 5 LEFT (back) Module 4 Right: Media Library continued Module 5 Left: Assessment & Quizzes ══════════════════════════════════════════════════ --><div class="page" id="p4" style="z-index:6;"><!-- MODULE 4 — RIGHT PAGE --><div class="face pbg"><div class="psh"></div><div class="pi"><div class="ph"><span class="ph-t">Media Library</span><span class="ph-tag">Mod · 04 · R</span></div><div class="tbanner"><span class="ticon">🎬</span><span class="tlbl">Module 4 — Content &amp;
-Media Library</span></div><div class="slbl" style="margin-top:0;">Library Stats</div><div class="g2"><div class="sc"><span class="sv">48</span><span class="slb">Videos</span></div><div class="sc"><span class="sv">124</span><span class="slb">PDFs</span></div></div><div class="slbl">Recently Added</div><div class="card"><div class="row"><span class="rk">🎥 Kali Recon Deep Dive</span><span class="rv g">New</span></div><div class="row"><span class="rk">📄 IoT Lab Manual v3</span><span class="rv b">Updated</span></div><div class="row"><span class="rk">🎥 Python OOP Advanced</span><span class="rv">2d ago</span></div><div class="row"><span class="rk">📄 Network Topology Ref</span><span class="rv">1w ago</span></div></div><div class="slbl">Playlist · Current Module</div><div class="tline"><div class="titem"><div class="titem-t">Intro to DHT22 Sensors · 12:30</div><div class="titem-s">Watched · 100%</div></div><div class="titem"><div class="titem-t">ThingSpeak Integration · 18:40</div><div class="titem-s">In Progress · 35%</div></div><div class="titem"><div class="titem-t">MQTT Protocol Deep Dive · 22:15</div><div class="titem-s">Not started</div></div></div><div class="pnav"><button class="pnb" onclick="unturnPage(3)">← Content</button><span class="pnp">04 · R</span><button class="pnb" onclick="turnPage(4)">Module 5 →</button></div></div></div><!-- MODULE 5 — LEFT PAGE --><div class="face back pbg"><div class="psh-r"></div><div class="pi"><div class="ph"><span class="ph-t">Assessments</span><span class="ph-tag">Mod · 05 · L</span></div><div class="tbanner"><span class="ticon">📝</span><span class="tlbl">Module 5 — Assessments &amp;
-Quizzes</span></div><div class="card" style="border:1px dashed rgba(224,80,112,0.38);margin-bottom:7px;padding:9px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;"><span style="font-size:clamp(0.62rem,0.8vw,1.0rem);font-weight:600;color:var(--text);">Python Practicum</span><span class="badge red">⚠ 48h left</span></div><div style="font-size:clamp(0.54rem,0.72vw,0.88rem);color:var(--text-dim);line-height:1.55;">Submit <code style="color:var(--gold);background:rgba(201,168,76,0.08);padding:1px 4px;">overload_demo.py</code>with <code style="color:var(--gold);background:rgba(201,168,76,0.08);padding:1px 4px;">__add__</code>&amp;
-<code style="color:var(--gold);background:rgba(201,168,76,0.08);padding:1px 4px;">__str__</code>for auto-grading.</div></div><div class="slbl">Live Quiz · Kali Linux</div><div class="card"><div style="font-size:clamp(0.62rem,0.8vw,1.0rem);color:var(--text);margin-bottom:7px;font-weight:500;">Q — Correct command to refresh Kali repos?</div><label class="qopt"><input type="radio" name="q1"><span>sudo apt-get update</span></label><label class="qopt"><input type="radio" name="q1"><span>sudo pacman -Syu</span></label><label class="qopt"><input type="radio" name="q1"><span>sudo yum update</span></label></div><div class="slbl">Queue</div><div class="card"><div class="row"><span class="rk">📬 Pending Review</span><span class="rv w">3 submissions</span></div><div class="row"><span class="rk">✅ Auto-Graded</span><span class="rv gr">24 scripts</span></div></div><div class="pnav"><button class="pnb" onclick="unturnPage(4)">← Module 4</button><span class="pnp">05 · L</span><button class="pnb" onclick="turnPage(4)">Quizzes →</button></div></div></div></div><!-- ══════════════════════════════════════════════════ PAGE 5 — MODULE 5 RIGHT (front)+MODULE 6 LEFT (back) Module 5 Right: Grading & Feedback Module 6 Left: Progress Tracking ══════════════════════════════════════════════════ --><div class="page" id="p5" style="z-index:5;"><!-- MODULE 5 — RIGHT PAGE --><div class="face pbg"><div class="psh"></div><div class="pi"><div class="ph"><span class="ph-t">Grading Hub</span><span class="ph-tag">Mod · 05 · R</span></div><div class="tbanner"><span class="ticon">📝</span><span class="tlbl">Module 5 — Assessments &amp;
-Quizzes</span></div><div class="g3"><div class="sc"><span class="sv" style="color:var(--green);">24</span><span class="slb">Graded</span></div><div class="sc"><span class="sv" style="color:var(--red);">3</span><span class="slb">Pending</span></div><div class="sc"><span class="sv" style="color:var(--gold);">84%</span><span class="slb">Avg Score</span></div></div><div class="slbl">Score Distribution</div><div class="card"><div class="cbar"><div class="cbar-l">90–100%</div><div class="cbar-t"><div class="cbar-f" style="width:30%;"></div></div><div class="cbar-v">8 students</div></div><div class="cbar"><div class="cbar-l">75–89%</div><div class="cbar-t"><div class="cbar-f" style="width:55%;background:linear-gradient(90deg,#4a80d0,#7ab0f0);"></div></div><div class="cbar-v">14 students</div></div><div class="cbar"><div class="cbar-l">Below 75%</div><div class="cbar-t"><div class="cbar-f" style="width:15%;background:linear-gradient(90deg,#c04060,#e07090);"></div></div><div class="cbar-v">2 students</div></div></div><div class="slbl">AI Feedback Samples</div><div class="tline"><div class="titem"><div class="titem-t">Allan K J — 92/100</div><div class="titem-s">Good use of __str__;
-add edge case handling</div></div><div class="titem"><div class="titem-t">Priya R. — 98/100</div><div class="titem-s">Excellent operator chaining logic</div></div></div><div class="pnav"><button class="pnb" onclick="unturnPage(4)">← Assessments</button><span class="pnp">05 · R</span><button class="pnb" onclick="turnPage(5)">Module 6 →</button></div></div></div><!-- MODULE 6 — LEFT PAGE --><div class="face back pbg"><div class="psh-r"></div><div class="pi"><div class="ph"><span class="ph-t">Progress Vault</span><span class="ph-tag">Mod · 06 · L</span></div><div class="tbanner"><span class="ticon">📈</span><span class="tlbl">Module 6 — Progress &amp;
-Analytics</span></div><div class="slbl" style="margin-top:0;">Semester Overview</div><div class="card"><div class="cbar"><div class="cbar-l">Kali Linux</div><div class="cbar-t"><div class="cbar-f" style="width:92%;"></div></div><div class="cbar-v">92%</div></div><div class="cbar"><div class="cbar-l">IoT Networks</div><div class="cbar-t"><div class="cbar-f" style="width:78%;background:linear-gradient(90deg,#4a80d0,#7ab0f0);"></div></div><div class="cbar-v">78%</div></div><div class="cbar"><div class="cbar-l">Adv. Python</div><div class="cbar-t"><div class="cbar-f" style="width:45%;background:linear-gradient(90deg,#c04060,#e07090);"></div></div><div class="cbar-v">45%</div></div><div class="cbar"><div class="cbar-l">Overall GPA</div><div class="cbar-t"><div class="cbar-f" style="width:82%;background:linear-gradient(90deg,#9a7930,#e8c96b);"></div></div><div class="cbar-v">8.6</div></div></div><div class="slbl">Weekly Study Time</div><div class="card"><div class="row"><span class="rk">Mon</span><span class="rv g">3h 20m</span></div><div class="row"><span class="rk">Tue</span><span class="rv">2h 45m</span></div><div class="row"><span class="rk">Wed</span><span class="rv b">4h 10m · Peak</span></div><div class="row"><span class="rk">Thu</span><span class="rv">1h 55m</span></div></div><div class="pnav"><button class="pnb" onclick="unturnPage(5)">← Module 5</button><span class="pnp">06 · L</span><button class="pnb" onclick="turnPage(5)">Analytics →</button></div></div></div></div><!-- ══════════════════════════════════════════════════ PAGE 6 — MODULE 6 RIGHT (front)+MODULE 7 LEFT (back) Module 6 Right: Analytics Dashboard Module 7 Left: Achievements & Badges ══════════════════════════════════════════════════ --><div class="page" id="p6" style="z-index:4;"><!-- MODULE 6 — RIGHT PAGE --><div class="face pbg"><div class="psh"></div><div class="pi"><div class="ph"><span class="ph-t">Analytics Board</span><span class="ph-tag">Mod · 06 · R</span></div><div class="tbanner"><span class="ticon">📈</span><span class="tlbl">Module 6 — Progress &amp;
-Analytics</span></div><div class="g2"><div class="sc"><span class="sv" style="color:var(--gold);">8.6</span><span class="slb">CGPA</span></div><div class="sc"><span class="sv" style="color:var(--green);">Top 12%</span><span class="slb">Cohort Rank</span></div></div><div class="slbl">Learning Velocity</div><div class="card"><div class="row"><span class="rk">📅 This Week</span><span class="rv g">+7% avg progress</span></div><div class="row"><span class="rk">🔥 Streak</span><span class="rv gold">14 days active</span></div><div class="row"><span class="rk">📖 Modules Done</span><span class="rv">6 / 10</span></div><div class="row"><span class="rk">🎯 On-Track</span><span class="rv gr">Cybersecurity,
-IoT</span></div><div class="row"><span class="rk">⚠ Behind</span><span class="rv w">Advanced Python</span></div></div><div class="slbl">AI Study Recommendation</div><div class="ann"><div style="font-size:clamp(0.52rem,0.7vw,0.85rem);color:var(--gold);margin-bottom:4px;">🤖 Oracle Suggests</div><div style="font-size:clamp(0.62rem,0.8vw,1.0rem);color:var(--text);line-height:1.55;">Dedicate 2h tonight to Python OOP — submit practicum before the 48h deadline. IoT lab report due next Friday.</div></div><div class="pnav"><button class="pnb" onclick="unturnPage(5)">← Progress</button><span class="pnp">06 · R</span><button class="pnb" onclick="turnPage(6)">Module 7 →</button></div></div></div><!-- MODULE 7 — LEFT PAGE --><div class="face back pbg"><div class="psh-r"></div><div class="pi"><div class="ph"><span class="ph-t">Achievements</span><span class="ph-tag">Mod · 07 · L</span></div><div class="tbanner"><span class="ticon">🏆</span><span class="tlbl">Module 7 — Achievements &amp;
-Badges</span></div><div class="slbl" style="margin-top:0;">Unlocked Badges</div><div class="g2" style="margin-bottom:7px;"><div class="sc" style="padding:9px;"><div style="font-size:clamp(1.2rem,1.6vw,1.85rem);text-shadow:0 0 10px rgba(201,168,76,0.5);">★</div><div style="font-size:clamp(0.54rem,0.72vw,0.88rem);color:var(--gold);margin-top:3px;">Sys. Architect</div><div style="font-size:clamp(0.48rem,0.64vw,0.78rem);color:var(--text-dim);">Novice · 2d ago</div></div><div class="sc" style="padding:9px;"><div style="font-size:clamp(1.2rem,1.6vw,1.85rem);">🛡</div><div style="font-size:clamp(0.54rem,0.72vw,0.88rem);color:var(--gold);margin-top:3px;">Kali Sentinel</div><div style="font-size:clamp(0.48rem,0.64vw,0.78rem);color:var(--text-dim);">Elite · 1w ago</div></div></div><div class="g2" style="margin-bottom:7px;"><div class="sc" style="padding:9px;"><div style="font-size:clamp(1.2rem,1.6vw,1.85rem);">🔥</div><div style="font-size:clamp(0.54rem,0.72vw,0.88rem);color:var(--gold);margin-top:3px;">14-Day Streak</div><div style="font-size:clamp(0.48rem,0.64vw,0.78rem);color:var(--text-dim);">Active · Today</div></div><div class="sc" style="padding:9px;opacity:0.35;"><div style="font-size:clamp(1.2rem,1.6vw,1.85rem);">🎓</div><div style="font-size:clamp(0.54rem,0.72vw,0.88rem);color:var(--text-dim);margin-top:3px;">Grad Scholar</div><div style="font-size:clamp(0.48rem,0.64vw,0.78rem);color:var(--text-dim);">Locked</div></div></div><div class="slbl">XP Progress</div><div class="card"><div class="cbar"><div class="cbar-l">Current XP</div><div class="cbar-t"><div class="cbar-f" style="width:71%;"></div></div><div class="cbar-v">2,
-840</div></div><div style="font-size:clamp(0.52rem,0.7vw,0.85rem);color:var(--text-dim);margin-top:5px;text-align:center;">Next badge at 4,
-000 XP — <span style="color:var(--gold);">1,
-160 XP to go</span></div></div><div class="pnav"><button class="pnb" onclick="unturnPage(6)">← Module 6</button><span class="pnp">07 · L</span><button class="pnb" onclick="turnPage(6)">Badges →</button></div></div></div></div><!-- ══════════════════════════════════════════════════ PAGE 7 — MODULE 7 RIGHT (front)+MODULE 8 LEFT (back) Module 7 Right: Leaderboard & Certificates Module 8 Left: Communication Hub ══════════════════════════════════════════════════ --><div class="page" id="p7" style="z-index:3;"><!-- MODULE 7 — RIGHT PAGE --><div class="face pbg"><div class="psh"></div><div class="pi"><div class="ph"><span class="ph-t">Leaderboard</span><span class="ph-tag">Mod · 07 · R</span></div><div class="tbanner"><span class="ticon">🏆</span><span class="tlbl">Module 7 — Achievements &amp;
-Badges</span></div><div class="slbl" style="margin-top:0;">Independent Scholar</div><div class="card"><div class="row"><span class="rk">🥇 Allan K J</span><span class="rv g">2,
-840 XP</span></div><div class="row"><span class="rk">🥈 Priya R.</span><span class="rv">2,
-710 XP</span></div><div class="row"><span class="rk">🥉 Karthik M.</span><span class="rv">2,
-590 XP</span></div><div class="row"><span class="rk">4. Sneha L.</span><span class="rv">2,
-440 XP</span></div><div class="row"><span class="rk">5. Arjun V.</span><span class="rv">2,
-310 XP</span></div></div><div class="slbl">Certificate Vault</div><div class="cert-card"><div style="font-size:clamp(1.3rem,1.7vw,2rem);color:var(--gold);text-shadow:0 0 14px rgba(201,168,76,0.38);margin-bottom:3px;">⬡</div><div style="font-family:'Cormorant Garamond',serif;font-size:0.76rem;color:var(--gold-bright);margin-bottom:3px;">Blockchain-Verified Certificate</div><div style="font-size:clamp(0.5rem,0.68vw,0.82rem);color:var(--text-dim);line-height:1.55;margin-bottom:7px;">Complete a full module to generate your SHA-256 signed PDF.</div><button class="bgh" style="padding:5px 12px;font-size:clamp(0.5rem,0.66vw,0.8rem);">⛓ Verify Hash · Decrypt</button></div><div class="pnav"><button class="pnb" onclick="unturnPage(6)">← Achievements</button><span class="pnp">07 · R</span><button class="pnb" onclick="turnPage(7)">Module 8 →</button></div></div></div><!-- MODULE 8 — LEFT PAGE --><div class="face back pbg"><div class="psh-r"></div><div class="pi"><div class="ph"><span class="ph-t">Comm Hub</span><span class="ph-tag">Mod · 08 · L</span></div><div class="tbanner"><span class="ticon">💬</span><span class="tlbl">Module 8 — Communication Hub</span></div><div class="slbl" style="margin-top:0;">Instructor Broadcast</div><div class="ann"><div style="font-size:clamp(0.48rem,0.64vw,0.78rem);color:var(--wine-light);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px;">● Live · Dr. Pradeep V.</div><div style="font-size:0.7rem;line-height:1.55;color:var(--text);">TechFest 2026 poster submissions close <strong style="color:var(--gold);">Monday 09:00 IST</strong>. Submit via Content Engine.</div></div><div class="slbl">Team Forum · Independent Scholar</div><div class="card"><div class="row"><span class="rk">💬 Open Threads</span><span class="rv g">7 active</span></div><div class="row"><span class="rk">📌 Pinned</span><span class="rv">Lab report format · v2</span></div><div class="row"><span class="rk">🔔 Unread</span><span class="rv w">3 mentions</span></div></div><div class="slbl">Recent Messages</div><div class="tline"><div class="titem"><div class="titem-t">Karthik M.: "Anyone done Q3 IoT?" </div><div class="titem-s">Today · 10:22 IST</div></div><div class="titem"><div class="titem-t">Priya R.: "Check the ThingSpeak docs" </div><div class="titem-s">Today · 10:35 IST</div></div><div class="titem"><div class="titem-t">Allan K J: "On it, will share notes" </div><div class="titem-s">Today · 10:41 IST</div></div></div><div class="pnav"><button class="pnb" onclick="unturnPage(7)">← Module 7</button><span class="pnp">08 · L</span><button class="pnb" onclick="turnPage(7)">Comms →</button></div></div></div></div><!-- ══════════════════════════════════════════════════ PAGE 8 — MODULE 8 RIGHT (front)+MODULE 9 LEFT (back) Module 8 Right: Notifications & Announcements Module 9 Left: Security & System Layer ══════════════════════════════════════════════════ --><div class="page" id="p8" style="z-index:2;"><!-- MODULE 8 — RIGHT PAGE --><div class="face pbg"><div class="psh"></div><div class="pi"><div class="ph"><span class="ph-t">Notifications</span><span class="ph-tag">Mod · 08 · R</span></div><div class="tbanner"><span class="ticon">💬</span><span class="tlbl">Module 8 — Communication Hub</span></div><div class="g2"><div class="sc"><span class="sv" style="color:var(--red);">5</span><span class="slb">Unread</span></div><div class="sc"><span class="sv" style="color:var(--gold);">3</span><span class="slb">Urgent</span></div></div><div class="slbl">Inbox</div><div class="tline"><div class="titem"><div class="titem-t">📋 Python submission reminder</div><div class="titem-s">System · 48h warning · Today</div></div><div class="titem"><div class="titem-t">📊 Quiz results published</div><div class="titem-s">Kali Linux Recon · 92% · Today</div></div><div class="titem"><div class="titem-t">🏆 New badge unlocked</div><div class="titem-s">14-Day Streak · Today</div></div><div class="titem"><div class="titem-t">📢 TechFest 2026 deadline</div><div class="titem-s">Dr. Pradeep V. · Yesterday</div></div></div><div class="slbl">Notification Settings</div><div class="card"><div class="row"><span class="rk">📧 Email Alerts</span><span class="rv gr">On · Digest</span></div><div class="row"><span class="rk">📱 Push Notifications</span><span class="rv gr">On · Instant</span></div><div class="row"><span class="rk">🔕 Do Not Disturb</span><span class="rv">22:00–07:00 IST</span></div></div><div class="pnav"><button class="pnb" onclick="unturnPage(7)">← Comms</button><span class="pnp">08 · R</span><button class="pnb" onclick="turnPage(8)">Module 9 →</button></div></div></div><!-- MODULE 9 — LEFT PAGE --><div class="face back pbg"><div class="psh-r"></div><div class="pi"><div class="ph"><span class="ph-t">Security Layer</span><span class="ph-tag">Mod · 09 · L</span></div><div class="tbanner"><span class="ticon">🔒</span><span class="tlbl">Module 9 — Security &amp;
-System Config</span></div><div class="sec-ring"><span style="font-size:1.1rem;">🛡</span></div><div style="text-align:center;margin-bottom:8px;"><span class="badge green">All Systems Secure</span></div><div class="card"><div class="row"><span class="rk">🔑 Authentication</span><span class="rv gr">JWT · RSA-256</span></div><div class="row"><span class="rk">🔒 Encryption</span><span class="rv gr">AES-256 · TLS 1.3</span></div><div class="row"><span class="rk">📋 Activity Log</span><span class="rv g">AI-Monitored</span></div><div class="row"><span class="rk">🚦 Rate Limiting</span><span class="rv">Nginx · 300 req/h</span></div><div class="row"><span class="rk">🌐 Firewall</span><span class="rv gr">Active · 0 breaches</span></div></div><div class="slbl">Threat Intelligence</div><div class="card" style="font-size:clamp(0.54rem,0.72vw,0.88rem);line-height:1.75;color:var(--text-dim);"><div><span style="color:var(--green);">●</span>0 failed login attempts today</div><div><span style="color:var(--green);">●</span>SSL cert valid · 287 days remain</div><div><span style="color:var(--gold);">●</span>DDoS mitigation active · Cloudflare</div></div><div class="pnav"><button class="pnb" onclick="unturnPage(8)">← Module 8</button><span class="pnp">09 · L</span><button class="pnb" onclick="turnPage(8)">Security →</button></div></div></div></div><!-- ══════════════════════════════════════════════════ PAGE 9 — MODULE 9 RIGHT (front)+MODULE 10 LEFT (back) Module 9 Right: System Configuration Module 10 Left: AI Oracle ══════════════════════════════════════════════════ --><div class="page" id="p9" style="z-index:1;"><!-- MODULE 9 — RIGHT PAGE --><div class="face pbg"><div class="psh"></div><div class="pi"><div class="ph"><span class="ph-t">System Config</span><span class="ph-tag">Mod · 09 · R</span></div><div class="tbanner"><span class="ticon">🔒</span><span class="tlbl">Module 9 — Security &amp;
-System Config</span></div><div class="slbl" style="margin-top:0;">Environment Themes</div><div class="g2" style="gap:5px;margin-bottom:6px;"><button class="bgh" onclick="switchTheme('classic')" style="background:rgba(61,7,21,0.5);border-color:var(--wine-light);color:var(--gold);">● Nexus Classic</button><button class="bgh" onclick="switchTheme('cyber')" style="border-color:rgba(80,144,224,0.38);color:#00f0ff;">◈ Cyber Neon</button></div><div class="g2" style="gap:5px;margin-bottom:8px;"><button class="bgh" onclick="switchTheme('crimson')" style="border-color:rgba(255,69,0,0.38);color:#ff8c00;">◈ Crimson Forge</button><button class="bgh" onclick="switchTheme('matrix')" style="border-color:rgba(78,202,122,0.38);color:#00ff00;">◈ Forest Matrix</button></div><div class="slbl">Platform Preferences</div><div class="card"><div class="row"><span class="rk">🌍 Language</span><span class="rv">English (EN)</span></div><div class="row"><span class="rk">🕐 Timezone</span><span class="rv">IST · UTC+5:30</span></div><div class="row"><span class="rk">♿ Accessibility</span><span class="rv gr">Dyslexia font off</span></div><div class="row"><span class="rk">📊 Data Export</span><span class="rv b">CSV / PDF</span></div></div><div class="slbl">Team Info</div><div class="card"><div class="row"><span class="rk">👥 Team</span><span class="rv g">Independent Scholar</span></div><div class="row"><span class="rk">🔢 Team No.</span><span class="rv b">#14</span></div><div class="row"><span class="rk">🏫 Edition</span><span class="rv">Grand Theatre v4.1</span></div></div><div class="pnav"><button class="pnb" onclick="unturnPage(8)">← Security</button><span class="pnp">09 · R</span><button class="pnb" onclick="turnPage(9)">Module 10 →</button></div></div></div><!-- MODULE 10 — LEFT PAGE --><div class="face back pbg"><div class="psh-r"></div><div class="pi" style="gap:0;"><div class="ph"><span class="ph-t" style="color:var(--wine-light);">AI Oracle</span><span class="ph-tag">Mod · 10 · L</span></div><div class="tbanner"><span class="ticon">🧠</span><span class="tlbl">Module 10 — AI Intelligence Layer</span></div><div style="font-size:clamp(0.52rem,0.7vw,0.85rem);color:var(--text-dim);margin-bottom:8px;letter-spacing:0.04em;">Frontend intelligence · Independent Scholar</div><div class="cscroll" id="chatBox"><div class="bbl ai">Neural link established. I am your <strong>NEXUS Oracle</strong>— Independent Scholar,
-Independent Scholar. What shall we unlock today,
-Scholar Allan?</div></div><div class="crow"><input class="cinp" id="chatInput" placeholder="Ask for a quiz, concept, or deadline…" onkeydown="if(event.key==='Enter')sendMsg();"><button class="csend" onclick="sendMsg();">Send ↗</button></div><div class="pnav"><button class="pnb" onclick="unturnPage(9)">← Module 9</button><span class="pnp">10 · L</span><button class="pnb" onclick="turnPage(9)">Oracle →</button></div></div></div></div><!-- ══════════════════════════════════════════════════ PAGE 10 — MODULE 10 RIGHT (front)+BACK COVER (back) Module 10 Right: AI Insights ══════════════════════════════════════════════════ --><div class="page" id="p10" style="z-index:0;"><!-- MODULE 10 — RIGHT PAGE --><div class="face pbg"><div class="psh"></div><div class="pi"><div class="ph"><span class="ph-t">AI Insights</span><span class="ph-tag">Mod · 10 · R</span></div><div class="tbanner"><span class="ticon">🧠</span><span class="tlbl">Module 10 — AI Intelligence Layer</span></div><div class="slbl" style="margin-top:0;">Oracle Capabilities</div><div class="card"><div class="row"><span class="rk">📝 Quiz Generation</span><span class="rv gr">Active</span></div><div class="row"><span class="rk">💡 Concept Explainer</span><span class="rv gr">Active</span></div><div class="row"><span class="rk">📅 Deadline Tracker</span><span class="rv gr">Active</span></div><div class="row"><span class="rk">📊 Study Plan Builder</span><span class="rv gr">Active</span></div><div class="row"><span class="rk">🔮 Model</span><span class="rv b">NEXUS Oracle v1</span></div></div><div class="slbl">Oracle Knowledge Base</div><div class="tline"><div class="titem"><div class="titem-t">Python OOP · Operator Overloading</div><div class="titem-s">48h deadline · Priority HIGH</div></div><div class="titem"><div class="titem-t">Kali Linux · Reconnaissance</div><div class="titem-s">92% complete · Final quiz pending</div></div><div class="titem"><div class="titem-t">IoT · DHT22 · ThingSpeak · MQTT</div><div class="titem-s">78% complete · Lab report due Fri</div></div></div><div style="margin-top:auto;padding-top:8px;text-align:center;"><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:clamp(0.65rem,0.85vw,1.05rem);color:rgba(201,168,76,0.35);">✦ End of the Grand Tome ✦</div><div style="font-size:clamp(0.46rem,0.62vw,0.75rem);color:rgba(201,168,76,0.2);letter-spacing:0.2em;margin-top:4px;">Independent Scholar</div></div><div class="pnav"><button class="pnb" onclick="unturnPage(9)">← Oracle</button><span class="pnp">10 · R</span><span></span></div></div></div><!-- BACK COVER --><div class="face back cover"><div class="ctx"></div><div class="cfr"><span class="cfr-br">✦</span><span class="cfr-tr">✦</span><span class="cfr-bl">✦</span></div></div></div></div><!-- #book --></div><!-- #scene --><script>
+<div id="alien-body"><svg viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg" width="90" height="90"><!-- Body --><ellipse cx="45" cy="58" rx="20" ry="22" fill="#5dde8a" opacity="0.95" /><!-- Belly shine --><ellipse cx="45" cy="60" rx="10" ry="12" fill="#80eea8" opacity="0.4" /><!-- Head --><ellipse cx="45" cy="34" rx="22" ry="20" fill="#5dde8a" /><!-- Head shine --><ellipse cx="38" cy="26" rx="7" ry="5" fill="#a0f0c0" opacity="0.4" /><!-- Left big eye --><ellipse cx="35" cy="32" rx="9" ry="10" fill="white" /><ellipse id="alien-eye-l" cx="35" cy="33" rx="6" ry="7" fill="#1a1a3a" /><ellipse cx="33" cy="31" rx="2" ry="2.5" fill="white" opacity="0.8" /><!-- Right big eye --><ellipse cx="55" cy="32" rx="9" ry="10" fill="white" /><ellipse id="alien-eye-r" cx="55" cy="33" rx="6" ry="7" fill="#1a1a3a" /><ellipse cx="53" cy="31" rx="2" ry="2.5" fill="white" opacity="0.8" /><!-- Smile --><path id="alien-mouth" d="M38 46 Q45 52 52 46" stroke="#2a8050" stroke-width="2" fill="none" stroke-linecap="round" /><!-- Antennae left --><line x1="34" y1="14" x2="28" y2="4" stroke="#5dde8a" stroke-width="2.5" stroke-linecap="round" /><circle cx="27" cy="3" r="3" fill="#ff80ff" /><!-- Antennae right --><line x1="56" y1="14" x2="62" y2="4" stroke="#5dde8a" stroke-width="2.5" stroke-linecap="round" /><circle cx="63" cy="3" r="3" fill="#ff80ff" /><!-- Left arm --><path d="M26 56 Q16 62 18 70" stroke="#5dde8a" stroke-width="5" fill="none" stroke-linecap="round" /><circle cx="18" cy="71" r="4" fill="#5dde8a" /><!-- Right arm --><path d="M64 56 Q74 62 72 70" stroke="#5dde8a" stroke-width="5" fill="none" stroke-linecap="round" /><circle cx="72" cy="71" r="4" fill="#5dde8a" /><!-- Left leg --><path d="M38 78 Q35 86 32 88" stroke="#5dde8a" stroke-width="5" fill="none" stroke-linecap="round" /><ellipse cx="30" cy="88" rx="5" ry="2.5" fill="#4ab870" /><!-- Right leg --><path d="M52 78 Q55 86 58 88" stroke="#5dde8a" stroke-width="5" fill="none" stroke-linecap="round" /><ellipse cx="60" cy="88" rx="5" ry="2.5" fill="#4ab870" /><!-- Spots --><circle cx="40" cy="62" r="2" fill="#4ab870" opacity="0.6" /><circle cx="50" cy="65" r="1.5" fill="#4ab870" opacity="0.6" /><circle cx="45" cy="68" r="1.5" fill="#4ab870" opacity="0.6" /></svg></div><div id="alien-label">Xeno · Unit 14</div></div><div class="hc" id="hc1"></div><div class="hc" id="hc2"></div><div class="hc" id="hc3"></div><div class="hc" id="hc4"></div><div id="hud-top"><div class="hl"></div><div class="ht">Nexus · Grand Tome Theatre</div><div class="hl r"></div></div><div id="hud-bot"><div class="hs"><span class="hdot"></span>System Online</div><div class="hs">Scholar · Scholar IV</div><div class="hs">Independent Scholar</div><div class="hs">JWT · AES-256 · Active</div></div><!-- BOOK --><div id="scene"><div id="book" class="idle"><!-- ══════════════════════════════════════════════════ PAGE 0 — COVER (front)+MODULE 1 LEFT (back) Module 1: Authentication & Identity ══════════════════════════════════════════════════ --><div class="page" id="p0" style="z-index:10;"><!-- COVER FRONT --><div class="face cover"><div class="ctx"></div><div class="cfr"><span class="cfr-br">✦</span><span class="cfr-tr">✦</span><span class="cfr-bl">✦</span></div><div class="psh"></div><div class="cin"><div class="crest"><span class="crest-n">N</span></div><div class="ctit">NEXUS</div><div class="csub">Academic Master Tome · v4.1</div><div class="cedt">Grand Theatre Edition</div><div class="cln"></div><div class="team-badge">Independent Scholar</div><div class="la"><div class="fw"><div class="fl">Scholar Identifier</div><input class="ui" type="text" value="ADMIN"></div><div class="fw"><div class="fl">Access Cipher</div><input class="ui" type="password" placeholder="Enter password…"></div><button class="btu" id="unlockBtn" onclick="checkPassword()">✦ Unlock Tome ✦</button><div class="cln2"></div><div style="font-size:0.46rem;color:rgba(201,168,76,0.22);text-align:center;margin-top:8px;letter-spacing:0.13em;">SECURED · AES-256 · JWT PROTOCOL</div></div></div></div><!-- MODULE 1 — LEFT PAGE --><div class="face back pbg">
+    <div class="psh-r"></div>
+    <div class="pi">
+        <div class="ph">
+            <span class="ph-t">Today's Focus</span>
+            <span class="ph-tag">Mod · 01 · L</span>
+        </div>
+        <div class="slbl" style="margin-top: 15px;">What is your objective today?</div>
+        <div class="card" style="display:flex; flex-direction:column; gap: 10px;">
+            <textarea id="focusInput" class="cinp" style="height: 120px; resize: none; width: 100%; box-sizing: border-box;" placeholder="Enter your daily focus here..."></textarea>
+            <button class="csend" style="align-self: flex-end;" onclick="saveFocus()">Save Focus ✦</button>
+        </div>
+        <div id="focusDisplay" style="margin-top: 20px; color: var(--gold); font-style: italic; font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; line-height: 1.4;"></div>
+    </div>
+</div>
+</div><!-- END OF p0 -->
+<!-- PAGE 1 - MODULE 1 RIGHT (front) + BACK COVER (back) -->
+<div class="page" id="p1" style="z-index:9;">
+    <!-- RIGHT PAGE -->
+    <div class="face pbg">
+        <div class="psh"></div>
+        <div class="pi">
+            <div class="ph">
+                <span class="ph-t">Subject Manager</span>
+                <span class="ph-tag">Mod · 01 · R</span>
+            </div>
+            
+<div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top: 15px; margin-bottom: 5px;">
+    <div class="slbl" style="margin:0;">Your Subjects</div>
+    <div>
+        <input type="text" id="scholar-name" class="ui" style="width: 120px; padding: 2px 5px; font-size: 0.9rem; text-align:right;" placeholder="Your Name">
+    </div>
+</div>
+
+            <div id="subjectList" style="display:flex; flex-direction:column; gap:8px; overflow-y:auto; flex-grow: 1; margin-bottom: 15px; padding-right: 5px;">
+                <!-- Subjects will populate here -->
+            </div>
+            <div class="card" style="display:flex; flex-direction:column; gap: 10px; margin-top: auto; margin-bottom: 10px;">
+                <input type="text" id="newSubjectName" class="cinp" style="width: 100%; box-sizing: border-box;" placeholder="New Subject Name...">
+                <button class="csend" style="align-self: flex-end;" onclick="addSubject()">+ Add Subject</button>
+            </div>
+            
+    <!-- BACK OF PAGE 1 -->
+    <div class="face back pbg">
+       <div class="psh-r"></div>
+       <div class="pi">
+           <div class="ph"><span class="ph-t">Page 2</span></div>
+           <div style="position:absolute; bottom: 30px; left: 30px;"><button class="csend" onclick="unturnPage(1)">⬅ Prev Page</button></div>
+       </div>
+    </div>
+</div>
+
+
+<!-- DYNAMIC PAGES CONTAINER -->
+<div id="dynamic-pages"></div>
+<!-- #book --></div><!-- #scene --><script>
+
+
+window.setAlienExpression = function(expr) {
+    const mouth = document.getElementById('alien-mouth');
+    const eyeL = document.getElementById('alien-eye-l');
+    const eyeR = document.getElementById('alien-eye-r');
+    if(!mouth) return;
+    
+    // Reset defaults
+    mouth.setAttribute('d', 'M38 46 Q45 52 52 46');
+    mouth.setAttribute('fill', 'none');
+    eyeL.setAttribute('ry', '7');
+    eyeR.setAttribute('ry', '7');
+    
+    if (expr === 'shock') {
+        mouth.setAttribute('d', 'M41 48 C41 44, 49 44, 49 48 C49 52, 41 52, 41 48');
+        mouth.setAttribute('fill', '#2a8050');
+        eyeL.setAttribute('ry', '9');
+        eyeR.setAttribute('ry', '9');
+    } else if (expr === 'awkward') {
+        mouth.setAttribute('d', 'M38 48 L52 48');
+        eyeL.setAttribute('ry', '3');
+        eyeR.setAttribute('ry', '3');
+    } else if (expr === 'angry') {
+        mouth.setAttribute('d', 'M38 50 Q45 45 52 50');
+        eyeL.setAttribute('ry', '4');
+        eyeR.setAttribute('ry', '4');
+    } else if (expr === 'crying') {
+        mouth.setAttribute('d', 'M38 52 Q45 42 52 52'); // wailing mouth
+        mouth.setAttribute('fill', '#2a8050');
+        eyeL.setAttribute('ry', '12'); // welling up
+        eyeR.setAttribute('ry', '12');
+    } else if (expr === 'scared') {
+        mouth.setAttribute('d', 'M38 48 Q41 45 45 48 T52 48');
+        eyeL.setAttribute('ry', '10');
+        eyeR.setAttribute('ry', '10');
+    } else if (expr === 'dead') {
+        mouth.setAttribute('d', 'M38 52 Q45 45 52 52');
+        eyeL.setAttribute('ry', '1');
+        eyeR.setAttribute('ry', '1');
+    }
+};
 
 /* ====================================================================
    THREE.JS — DEEP SPACE STARFIELD (cyan, purple, blue-white)
@@ -1853,6 +1951,8 @@ let bookOpen=false;
 window.openBook=function() {
     if(bookOpen)return;
     bookOpen=true;
+    const chatContainer = document.getElementById('alien-chat-container');
+    if (chatContainer) chatContainer.style.display = 'none';
     const btn=document.getElementById('unlockBtn');
     btn.textContent='Opening…';
     btn.disabled=true;
@@ -1893,18 +1993,6 @@ tl.to(['#p1', '#p2', '#p3', '#p4', '#p5', '#p6', '#p7', '#p8', '#p9'], {
 
 , 1.0);
 
-tl.to(['#p9', '#p8', '#p7', '#p6', '#p5', '#p4', '#p3', '#p2'], {
-
-    rotationY:0, stagger:0.08, duration:1.0, ease:'power3.out',
-    onUpdate() {
-        ['p9', 'p8', 'p7', 'p6', 'p5', 'p4', 'p3', 'p2'].forEach((id, i)=> {
-                const el=document.getElementById(id); if(el&&gsap.getProperty(el, 'rotationY')>-90)el.style.zIndex=3+i;
-            });
-    }
-}
-
-, 2.0);
-
 tl.call(()=> {
         document.getElementById('hud-top').classList.add('show');
         document.getElementById('hud-bot').classList.add('show');
@@ -1916,142 +2004,36 @@ tl.call(()=> {
 
 ;
 
-window.turnPage=function(idx) {
-    const el=document.getElementById('p' +idx);
-
-    gsap.to(el, {
-
-        rotationY:-180, duration:1, ease:'power3.inOut',
-        onUpdate() {
-            if(this.progress()>0.5)el.style.zIndex=20+idx;
-        }
-    });
-}
-
-;
-
-window.unturnPage=function(idx) {
-    const el=document.getElementById('p' +idx);
-
-    gsap.to(el, {
-
-        rotationY:0, duration:1, ease:'power3.inOut',
-        onUpdate() {
-            if(this.progress()>0.5)el.style.zIndex=10-idx;
-        }
-    });
-}
-
-;
-
-/* ====================================================================
-   AI ORACLE — FRONTEND ONLY (no API)
-==================================================================== */
-const RESPONSES=[ {
-    k: ['python', 'overload', 'dunder', '__add__', '__str__', 'practicum'],
-        r:`Scholar, your Python Practicum is due in <strong style="color:var(--red);" >48 hours</strong>. Focus on dunder methods: <code style="color:var(--gold);background:rgba(201,168,76,0.08);padding:1px 4px;" >__add__</code> overloads the + operator, <code style="color:var(--gold);background:rgba(201,168,76,0.08);padding:1px 4px;" >__str__</code> defines print output, <code style="color:var(--gold);background:rgba(201,168,76,0.08);padding:1px 4px;" >__eq__</code> handles equality checks. Submit <code style="color:var(--gold);background:rgba(201,168,76,0.08);padding:1px 4px;" >overload_demo.py</code> to the portal tonight.`
-}
-
-,
-{
-k: ['quiz', 'test', 'question', 'practice'],
-    r:`Quiz time, Scholar ! What does <code style="color:var(--gold);background:rgba(201,168,76,0.08);padding:1px 4px;" >__str__</code> return when you call <code style="color:var(--gold);background:rgba(201,168,76,0.08);padding:1px 4px;" >print(obj)</code>? A) Memory address &nbsp;
-·&nbsp;
-B) Human-readable string &nbsp;
-·&nbsp;
-C) None. Answer: <strong style="color:var(--gold);" >B</strong> — the string you define in the method.`
-}
-
-,
-{
-k: ['kali', 'linux', 'cyber', 'security', 'apt', 'nmap', 'recon'],
-    r:`Cybersecurity standing: <strong style="color:var(--gold);" >92%</strong> — near mastery, Scholar. To close the final 8%, review packet analysis with Wireshark and run a full nmap reconnaissance scan on a local VM. One final quiz and you are certified.`
-}
-
-,
-{
-k: ['iot', 'sensor', 'dht', 'thingspeak', 'mqtt', 'esp', 'wifi'],
-    r:`IoT progress at <strong style="color:var(--gold);" >78%</strong>. Ensure your <code style="color:var(--gold);background:rgba(201,168,76,0.08);padding:1px 4px;" >WRITE_API_KEY</code> is correct and HTTP POST intervals exceed 15 seconds to avoid ThingSpeak rate limiting. Use MQTT for real-time streaming.`
-}
-
-,
-{
-k: ['deadline', 'due', 'urgent', 'time', 'when', 'schedule'],
-    r:`Critical timeline, Scholar — <strong style="color:var(--red);" >Python Practicum: 48 hours.</strong> IoT lab report due next week. Kali Linux: one final quiz remaining at 92%. Prioritise Python immediately — submit tonight.`
-}
-
-,
-{
-k: ['plan', 'study', 'help', 'how', 'what', 'start'],
-    r:`Battle plan, Night Coder: <strong>Tonight</strong> — Python Operator Overloading script. <strong>Tomorrow</strong> — IoT ThingSpeak lab report. <strong>Weekend</strong> — Kali Linux final recon quiz. All three modules at 100% by Sunday.`
-}
-
-,
-{
-k: ['progress', 'score', 'percent', 'complete', 'status'],
-    r:`Current standings — Cybersecurity &amp;
-Kali: <strong style="color:var(--gold);" >92%</strong> · IoT Networks: <strong style="color:var(--blue);" >78%</strong> · Advanced Python: <strong style="color:var(--red);" >45%</strong>. Overall GPA: <strong style="color:var(--gold);" >8.6</strong>. Python urgently needs attention.`
-}
-
-,
-{
-k: ['team', 'night', 'coder', '14', 'Independent Scholar'],
-    r:`Independent Scholar, Independent Scholar — a formidable collective ! Allan K J holds Level IV clearance and full admin rights across NEXUS. The Grand Theatre recognises your squad. What shall we conquer today?`
-}
-
-,
-{
-k: ['certificate', 'cert', 'blockchain', 'hash'],
-    r:`Your Cybersecurity module is at 92% — complete the final recon quiz to unlock your blockchain-verified certificate. SHA-256 hashed, tamper-proof, downloadable as a signed PDF from the Certificate Vault.`
-}
-
-,
-];
-const FALLBACK=[ `The Oracle processes your query. Focus on the Python Practicum — 48 hours remain and Operator Overloading demands your attention tonight,
-Scholar.`,
-`The NEXUS archives suggest prioritising Advanced Python before exploring further. Dunder methods await your command,
-Night Coder.`,
-`The Grand Theatre hears you. Three active modules — Python,
-IoT,
-Kali — each hold secrets yet unlocked. Which shall we illuminate?`,
-`With 92% in Cybersecurity you are near legend status. Push Python to match,
-and this tome's highest tier shall be yours.`,
-];
-let fi=0;
-
-window.sendMsg=async function() {
-    const inp=document.getElementById('chatInput'),
-    box=document.getElementById('chatBox');
-    const txt=inp.value.trim();
-    if(!txt)return;
-    inp.value='';
-
-    box.innerHTML+=`<div class="bbl usr">${esc(txt)}</div>`;
-    box.scrollTop=box.scrollHeight;
-    const tid='t'+Date.now();
-    box.innerHTML+=`<div class="bbl ai" id="${tid}" style="opacity:0.38;">· · ·</div>`;
-    box.scrollTop=box.scrollHeight;
-
-    try {
-        const response = await fetch('/api/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + window.sessionToken },
-            body: JSON.stringify({ message: txt })
-        });
-        const data = await response.json();
-        document.getElementById(tid)?.remove();
-        if (data.success) {
-            box.innerHTML+=`<div class="bbl ai">${data.reply}</div>`;
-        } else {
-            box.innerHTML+=`<div class="bbl ai" style="color:var(--red);">System error.</div>`;
-        }
-        box.scrollTop=box.scrollHeight;
-    } catch (err) {
-        document.getElementById(tid)?.remove();
-        box.innerHTML+=`<div class="bbl ai" style="color:var(--red);">Connection offline.</div>`;
-        box.scrollTop=box.scrollHeight;
-    }
+window.turnPage = function(idx) {
+    gsap.to('#p' + idx, {rotationY: -180, duration: 1.2, ease: 'power2.inOut'});
 };
+
+window.unturnPage = function(idx) {
+    gsap.to('#p' + idx, {rotationY: 0, duration: 1.2, ease: 'power2.inOut'});
+};
+
+window.closeBook = function() {
+    // 1. Unturn all pages sequentially or simultaneously
+    const total = window.totalDynamicPages ? window.totalDynamicPages + 1 : 4;
+    for(let i = 1; i <= total; i++) {
+        gsap.to('#p' + i, {rotationY: 0, duration: 1.2, ease: 'power2.inOut'});
+    }
+    
+    // 2. Close the front cover
+    gsap.to('#p0', {rotationY: 0, duration: 1.2, ease: 'power2.inOut', delay: 0.5});
+    
+    // 3. Rotate the whole book by 180deg to show the back cover
+    // Currently openBook rotates #book x: 50%, rotationY: 0 (from -25deg hover).
+    // The back cover is at rotationY: 180deg.
+    gsap.to('#book', {
+        x: '0%', 
+        rotationY: -180, 
+        duration: 1.5, 
+        ease: 'power3.inOut', 
+        delay: 1.2
+    });
+};
+
 
 function esc(s) {
     return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -2106,48 +2088,335 @@ const CORRECT_PASSWORD='nc14'; // ← CHANGE PASSWORD HERE
 
 
 window.fetchProgress = async function() {
-    if (!window.sessionToken) return;
+    if(!window.sessionToken) return;
     try {
-        const response = await fetch('/api/progress', {
-            headers: { 'Authorization': 'Bearer ' + window.sessionToken }
-        });
-        const data = await response.json();
-        if (data.success && data.progress) {
-            const bars = document.querySelectorAll('.cbar');
-            bars.forEach(bar => {
-                const label = bar.querySelector('.cbar-l').textContent.trim();
-                const progressValue = data.progress[label];
-                if (progressValue !== undefined) {
-                    bar.querySelector('.cbar-f').style.width = progressValue + '%';
-                    bar.querySelector('.cbar-v').textContent = (label === 'Overall GPA' ? (progressValue / 10).toFixed(1) : progressValue + '%');
+        const res = await fetch('/api/progress', { headers: { 'Authorization': 'Bearer ' + window.sessionToken } });
+        const data = await res.json();
+        if(data.success) {
+            const list = document.getElementById('subjectList');
+            if(list && data.progress) {
+                list.innerHTML = '';
+                for(const [subject, val] of Object.entries(data.progress)) {
+                    list.innerHTML += `
+                        <div class="titem" style="display:flex; justify-content:space-between; align-items:center; padding: 8px; border: 1px solid var(--border); border-radius: 4px; background: rgba(0,0,0,0.2);">
+                            <div class="titem-t">${subject}</div>
+                            <button onclick="deleteSubject('${subject}')" style="background:transparent; border:none; color:var(--red); cursor:pointer; font-size:1rem;">✕</button>
+                        </div>
+                    `;
                 }
-            });
+            }
+            if(data.focus) {
+                const fd = document.getElementById('focusDisplay');
+                if(fd) fd.innerHTML = `Current Focus:<br/><span style="color:var(--text); font-style:normal;">${data.focus}</span>`;
+            }
         }
-    } catch (err) {
-        console.error('Failed to fetch progress:', err);
+    } catch(err) {
+        console.error('Progress fetch failed', err);
     }
 };
 
+window.addSubject = async function() {
+    const input = document.getElementById('newSubjectName');
+    const name = input.value.trim();
+    if(!name) return;
+    
+    try {
+        const res = await fetch('/api/subjects/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + window.sessionToken },
+            body: JSON.stringify({ subject: name })
+        });
+        if(res.ok) {
+            input.value = '';
+            window.fetchProgress();
+        }
+    } catch(err) { console.error(err); }
+};
+
+window.deleteSubject = async function(name) {
+    if(!confirm(`Delete ${name}?`)) return;
+    try {
+        const res = await fetch('/api/subjects/delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + window.sessionToken },
+            body: JSON.stringify({ subject: name })
+        });
+        if(res.ok) {
+            window.fetchProgress();
+        }
+    } catch(err) { console.error(err); }
+};
+
+window.saveFocus = async function() {
+    const input = document.getElementById('focusInput');
+    const text = input.value.trim();
+    
+    try {
+        const res = await fetch('/api/focus', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + window.sessionToken },
+            body: JSON.stringify({ focus: text })
+        });
+        if(res.ok) {
+            input.value = '';
+            window.fetchProgress();
+        }
+    } catch(err) { console.error(err); }
+};
+
+
+
+// THEMES
+window.setTheme = function(theme) {
+    document.body.className = '';
+    if(theme !== 'default') {
+        document.body.classList.add('theme-' + theme);
+    }
+    localStorage.setItem('nexus_theme', theme);
+};
+const savedTheme = localStorage.getItem('nexus_theme');
+if(savedTheme) window.setTheme(savedTheme);
+
+// AI GENERATOR
+window.generateTome = async function() {
+    if(!window.loginUsername) return;
+    const name = document.getElementById('scholar-name').value || 'Scholar';
+    const btn = document.getElementById('generateBtn');
+    btn.textContent = 'Generating...';
+    btn.disabled = true;
+    
+    try {
+        const res = await fetch('/api/generate-tome', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({username: window.loginUsername, name: name})
+        });
+        const data = await res.json();
+        if(data.success) {
+            window.syllabusData = data.syllabus;
+            window.renderSyllabus();
+            // Automatically turn page 1 so they see the result!
+            window.turnPage(1);
+        } else {
+            alert('Error generating tome: ' + data.message);
+        }
+    } catch(e) {
+        console.error(e);
+    }
+    
+    btn.textContent = '✨ Generate Tome with AI ✨';
+    btn.disabled = false;
+};
+
+window.renderSyllabus = function() {
+    const container = document.getElementById('dynamic-pages');
+    container.innerHTML = '';
+    
+    if(!window.syllabusData || window.syllabusData.length === 0) return;
+    
+    let html = '';
+    const totalPages = window.syllabusData.length;
+    
+    window.syllabusData.forEach((pageData, i) => {
+        const pageNum = i + 2; // p2, p3, p4...
+        const zIndex = 10 - pageNum; // decreases
+        
+        let topicsHtml = '';
+        pageData.topics.forEach(t => {
+            topicsHtml += `
+            <div style="margin-bottom: 10px; display:flex; align-items:flex-start; gap:8px;">
+                <input type="checkbox" style="margin-top:4px;">
+                <span style="font-size: 0.95rem; line-height:1.4;">${t}</span>
+            </div>`;
+        });
+        
+        const isLastPage = (i === totalPages - 1);
+        
+        // Next button on front face (except last page which has Close Tome)
+        let nextBtn = isLastPage 
+            ? `<div style="position:absolute; bottom:30px; left:0; right:0; text-align:center;"><button class="csend" style="padding: 15px 30px; font-size: 1.2rem;" onclick="closeBook()">Close Tome</button></div>`
+            : `<div style="position:absolute; bottom: 30px; right: 30px;"><button class="csend" onclick="turnPage(${pageNum})">Next Page ➔</button></div>`;
+            
+        // Back Cover HTML if last page, otherwise normal back page
+        let backFace = isLastPage
+            ? `
+            <div class="face back cover">
+                <div class="ctx"></div>
+                <div class="cfr"><span class="cfr-br">♦</span><span class="cfr-tr">♦</span><span class="cfr-bl">♦</span></div>
+                <div class="psh-r"></div>
+                <div class="cin">
+                    <div class="crest" style="margin-top:20%;"><span class="crest-n">★</span></div>
+                    <div class="ctit" style="font-size: 3rem; margin-top: 30px; color: var(--gold); text-shadow: 0 0 20px rgba(201,168,76,0.5);">THANK YOUU!!!</div>
+                </div>
+            </div>`
+            : `
+            <div class="face back pbg">
+               <div class="psh-r"></div>
+               <div class="pi">
+                   <div class="ph"><span class="ph-t">Blank Page</span></div>
+                   <div style="position:absolute; bottom: 30px; left: 30px;"><button class="csend" onclick="unturnPage(${pageNum})">⬅ Prev Page</button></div>
+               </div>
+            </div>`;
+
+        html += `
+        <div class="page" id="p${pageNum}" style="z-index:${zIndex};">
+            <div class="face pbg">
+                <div class="psh"></div>
+                <div class="pi">
+                    <div class="ph" style="margin-bottom:20px;"><span class="ph-t">${pageData.title}</span></div>
+                    ${topicsHtml}
+                    ${nextBtn}
+                </div>
+            </div>
+            ${backFace}
+        </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+    window.totalDynamicPages = totalPages;
+};
+
+window.loginAttempts = 0;
 window.checkPassword=async function() {
     const inputs=document.querySelectorAll('.ui');
+    const userInp = inputs[0].value.trim();
     const pwInput=inputs[1];
     const entered=pwInput.value.trim();
+    const btn=document.getElementById('unlockBtn');
+    btn.disabled=true;
+    btn.textContent='Checking...';
     try {
         const response = await fetch('/api/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + window.sessionToken },
-            body: JSON.stringify({ password: entered })
+            body: JSON.stringify({ username: userInp, password: entered })
         });
         const data = await response.json();
         if (data.success) {
+            
+// THEMES
+window.setTheme = function(theme) {
+    document.body.className = '';
+    if(theme !== 'default') {
+        document.body.classList.add('theme-' + theme);
+    }
+    localStorage.setItem('nexus_theme', theme);
+};
+const savedTheme = localStorage.getItem('nexus_theme');
+if(savedTheme) window.setTheme(savedTheme);
+
+// AI GENERATOR
+window.generateTome = async function() {
+    if(!window.loginUsername) return;
+    const name = document.getElementById('scholar-name').value || 'Scholar';
+    const btn = document.getElementById('generateBtn');
+    btn.textContent = 'Generating...';
+    btn.disabled = true;
+    
+    try {
+        const res = await fetch('/api/generate-tome', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({username: window.loginUsername, name: name})
+        });
+        const data = await res.json();
+        if(data.success) {
+            window.syllabusData = data.syllabus;
+            window.renderSyllabus();
+            // Automatically turn page 1 so they see the result!
+            window.turnPage(1);
+        } else {
+            alert('Error generating tome: ' + data.message);
+        }
+    } catch(e) {
+        console.error(e);
+    }
+    
+    btn.textContent = '✨ Generate Tome with AI ✨';
+    btn.disabled = false;
+};
+
+window.renderSyllabus = function() {
+    const container = document.getElementById('dynamic-pages');
+    container.innerHTML = '';
+    
+    if(!window.syllabusData || window.syllabusData.length === 0) return;
+    
+    let html = '';
+    const totalPages = window.syllabusData.length;
+    
+    window.syllabusData.forEach((pageData, i) => {
+        const pageNum = i + 2; // p2, p3, p4...
+        const zIndex = 10 - pageNum; // decreases
+        
+        let topicsHtml = '';
+        pageData.topics.forEach(t => {
+            topicsHtml += `
+            <div style="margin-bottom: 10px; display:flex; align-items:flex-start; gap:8px;">
+                <input type="checkbox" style="margin-top:4px;">
+                <span style="font-size: 0.95rem; line-height:1.4;">${t}</span>
+            </div>`;
+        });
+        
+        const isLastPage = (i === totalPages - 1);
+        
+        // Next button on front face (except last page which has Close Tome)
+        let nextBtn = isLastPage 
+            ? `<div style="position:absolute; bottom:30px; left:0; right:0; text-align:center;"><button class="csend" style="padding: 15px 30px; font-size: 1.2rem;" onclick="closeBook()">Close Tome</button></div>`
+            : `<div style="position:absolute; bottom: 30px; right: 30px;"><button class="csend" onclick="turnPage(${pageNum})">Next Page ➔</button></div>`;
+            
+        // Back Cover HTML if last page, otherwise normal back page
+        let backFace = isLastPage
+            ? `
+            <div class="face back cover">
+                <div class="ctx"></div>
+                <div class="cfr"><span class="cfr-br">♦</span><span class="cfr-tr">♦</span><span class="cfr-bl">♦</span></div>
+                <div class="psh-r"></div>
+                <div class="cin">
+                    <div class="crest" style="margin-top:20%;"><span class="crest-n">★</span></div>
+                    <div class="ctit" style="font-size: 3rem; margin-top: 30px; color: var(--gold); text-shadow: 0 0 20px rgba(201,168,76,0.5);">THANK YOUU!!!</div>
+                </div>
+            </div>`
+            : `
+            <div class="face back pbg">
+               <div class="psh-r"></div>
+               <div class="pi">
+                   <div class="ph"><span class="ph-t">Blank Page</span></div>
+                   <div style="position:absolute; bottom: 30px; left: 30px;"><button class="csend" onclick="unturnPage(${pageNum})">⬅ Prev Page</button></div>
+               </div>
+            </div>`;
+
+        html += `
+        <div class="page" id="p${pageNum}" style="z-index:${zIndex};">
+            <div class="face pbg">
+                <div class="psh"></div>
+                <div class="pi">
+                    <div class="ph" style="margin-bottom:20px;"><span class="ph-t">${pageData.title}</span></div>
+                    ${topicsHtml}
+                    ${nextBtn}
+                </div>
+            </div>
+            ${backFace}
+        </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+    window.totalDynamicPages = totalPages;
+};
+
+window.loginAttempts = 0;
             window.sessionToken = data.token;
             triggerSuccess();
             fetchProgress();
         } else {
-            triggerFail();
+            window.loginAttempts++;
+            triggerFail(window.loginAttempts);
         }
     } catch (err) {
-        triggerFail();
+        window.loginAttempts++;
+        triggerFail(window.loginAttempts);
     }
 };
 /* ====================================================================
@@ -2233,91 +2502,205 @@ function triggerSuccess() {
    5. Ship retreats, password field shakes
    6. Alien resets after 3s so user can try again
 ==================================================================== */
-function triggerFail() {
+function triggerFail(attempts) {
     animating=true;
     const btn=document.getElementById('unlockBtn');
     const pwInput=document.querySelectorAll('.ui')[1];
-    const alienWrap=document.getElementById('alien-wrap');
-    const alienBody=document.getElementById('alien-body');
-    const laser=document.getElementById('laser');
-
-    btn.disabled=true;
-
-    // Get alien position
-    const alienRect=alienWrap.getBoundingClientRect();
-    const alienCX=alienRect.left+alienRect.width/2;
-    const alienCY=alienRect.top;
-
-    // Step 1: Ship flies above alien (500ms)
-    animateShipTo(alienCX, alienCY - 80, 500, ()=> {
-
-            // Step 2: Show red laser (instant)
+    
+    if (attempts === 1) {
+        window.setAlienExpression('awkward');
+        pwInput.classList.add('shake');
+        setTimeout(()=> pwInput.classList.remove('shake'), 500);
+        setTimeout(()=> { 
+            window.setAlienExpression('normal'); 
+            animating=false; 
+            btn.disabled=false; 
+            btn.textContent='✦ Unlock Tome ✦'; 
+        }, 1500);
+    } else if (attempts === 2) {
+        window.setAlienExpression('angry');
+        pwInput.classList.add('shake');
+        setTimeout(()=> pwInput.classList.remove('shake'), 500);
+        setTimeout(()=> { 
+            window.setAlienExpression('normal'); 
+            animating=false; 
+            btn.disabled=false; 
+            btn.textContent='✦ Unlock Tome ✦'; 
+        }, 1500);
+    } else {
+        window.setAlienExpression('scared');
+        const alienWrap=document.getElementById('alien-wrap');
+        const alienBody=document.getElementById('alien-body');
+        const laser=document.getElementById('laser');
+        
+        const alienRect=alienWrap.getBoundingClientRect();
+        const alienCX=alienRect.left+alienRect.width/2;
+        const alienCY=alienRect.top;
+        
+        setTimeout(() => {
+            window.setAlienExpression('crying');
+            // Shake the alien a bit while crying
+            alienWrap.style.animation = 'shake 0.5s infinite';
+        }, 1000);
+        
+        setTimeout(() => {
+            alienWrap.style.animation = ''; // stop shake
+            animateShipTo(alienCX, alienCY - 80, 500, ()=> {
             const laserTop=shipY + 22;
             const laserHeight=alienCY - laserTop + 40;
-
             laser.style.display='block';
-            laser.style.left=(shipX - 2) + 'px';
+            laser.style.left=(shipX - 15) + 'px';
             laser.style.top=laserTop + 'px';
             laser.style.height=laserHeight + 'px';
-
-            // Step 3: Alien death (after 100ms laser delay)
+            
+            alienBody.classList.add('dying');
+            setTimeout(()=> { 
+                window.setAlienExpression('dead'); 
+            }, 300);
+            
             setTimeout(()=> {
-                    alienBody.classList.add('dying');
+                laser.style.display='none'; 
+                spawnAsh(alienCX, alienCY, 60); 
+            }, 1000); // Laser hits for 1 second
 
-                    // Spawn ash particles at alien position
-                    spawnAsh(alienCX, alienRect.top + 40, 20);
-
-                    // Hide laser after 300ms
-                    setTimeout(()=> {
-                            laser.style.display='none';
-                        }
-
-                        , 300);
-
-                }
-
-                , 120);
-
-            // Step 4: Shake password input
+            setTimeout(()=> {
+                spawnAsh(alienCX, alienCY, 40); 
+            }, 2000); // More ash as he dies slowly
+            
             pwInput.classList.add('shake');
             setTimeout(()=> pwInput.classList.remove('shake'), 500);
-
-            // Step 5: Ship retreats upward after 800ms
+            
             setTimeout(()=> {
-                    animateShipTo(alienCX, alienCY - 250, 600, ()=> {
-                            animating=false;
-                            targetX=alienCX; targetY=alienCY - 250;
-                        });
-                }
-
-                , 800);
-
-            // Step 6: Reset alien + button after 3s so user can retry
+                animateShipTo(alienCX, alienCY - 250, 1000, ()=> { 
+                    animating=false; targetX=alienCX; targetY=alienCY - 250; 
+                });
+            }, 2500); // Ship flies away later
+            
             setTimeout(()=> {
-                    alienBody.classList.remove('dying');
-                    alienBody.style.animation='';
-                    // Force reflow to restart idle float
-                    void alienBody.offsetWidth;
-                    alienBody.style.animation='';
-                    alienBody.classList.remove('dying');
-                    alienWrap.style.display='';
+                alienBody.classList.remove('dying');
+                void alienBody.offsetWidth;
+                window.setAlienExpression('normal');
+                btn.disabled=false;
+                btn.textContent='✦ Unlock Tome ✦';
+                pwInput.value='';
+                
+// THEMES
+window.setTheme = function(theme) {
+    document.body.className = '';
+    if(theme !== 'default') {
+        document.body.classList.add('theme-' + theme);
+    }
+    localStorage.setItem('nexus_theme', theme);
+};
+const savedTheme = localStorage.getItem('nexus_theme');
+if(savedTheme) window.setTheme(savedTheme);
 
-                    btn.disabled=false;
-                    btn.textContent='✦ Unlock Tome ✦';
-                    pwInput.value='';
-                    pwInput.style.borderBottomColor='rgba(224,80,112,0.7)';
-
-                    setTimeout(()=> {
-                            pwInput.style.borderBottomColor='';
-                        }
-
-                        , 1000);
-                }
-
-                , 3200);
+// AI GENERATOR
+window.generateTome = async function() {
+    if(!window.loginUsername) return;
+    const name = document.getElementById('scholar-name').value || 'Scholar';
+    const btn = document.getElementById('generateBtn');
+    btn.textContent = 'Generating...';
+    btn.disabled = true;
+    
+    try {
+        const res = await fetch('/api/generate-tome', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({username: window.loginUsername, name: name})
         });
-}
+        const data = await res.json();
+        if(data.success) {
+            window.syllabusData = data.syllabus;
+            window.renderSyllabus();
+            // Automatically turn page 1 so they see the result!
+            window.turnPage(1);
+        } else {
+            alert('Error generating tome: ' + data.message);
+        }
+    } catch(e) {
+        console.error(e);
+    }
+    
+    btn.textContent = '✨ Generate Tome with AI ✨';
+    btn.disabled = false;
+};
 
+window.renderSyllabus = function() {
+    const container = document.getElementById('dynamic-pages');
+    container.innerHTML = '';
+    
+    if(!window.syllabusData || window.syllabusData.length === 0) return;
+    
+    let html = '';
+    const totalPages = window.syllabusData.length;
+    
+    window.syllabusData.forEach((pageData, i) => {
+        const pageNum = i + 2; // p2, p3, p4...
+        const zIndex = 10 - pageNum; // decreases
+        
+        let topicsHtml = '';
+        pageData.topics.forEach(t => {
+            topicsHtml += `
+            <div style="margin-bottom: 10px; display:flex; align-items:flex-start; gap:8px;">
+                <input type="checkbox" style="margin-top:4px;">
+                <span style="font-size: 0.95rem; line-height:1.4;">${t}</span>
+            </div>`;
+        });
+        
+        const isLastPage = (i === totalPages - 1);
+        
+        // Next button on front face (except last page which has Close Tome)
+        let nextBtn = isLastPage 
+            ? `<div style="position:absolute; bottom:30px; left:0; right:0; text-align:center;"><button class="csend" style="padding: 15px 30px; font-size: 1.2rem;" onclick="closeBook()">Close Tome</button></div>`
+            : `<div style="position:absolute; bottom: 30px; right: 30px;"><button class="csend" onclick="turnPage(${pageNum})">Next Page ➔</button></div>`;
+            
+        // Back Cover HTML if last page, otherwise normal back page
+        let backFace = isLastPage
+            ? `
+            <div class="face back cover">
+                <div class="ctx"></div>
+                <div class="cfr"><span class="cfr-br">♦</span><span class="cfr-tr">♦</span><span class="cfr-bl">♦</span></div>
+                <div class="psh-r"></div>
+                <div class="cin">
+                    <div class="crest" style="margin-top:20%;"><span class="crest-n">★</span></div>
+                    <div class="ctit" style="font-size: 3rem; margin-top: 30px; color: var(--gold); text-shadow: 0 0 20px rgba(201,168,76,0.5);">THANK YOUU!!!</div>
+                </div>
+            </div>`
+            : `
+            <div class="face back pbg">
+               <div class="psh-r"></div>
+               <div class="pi">
+                   <div class="ph"><span class="ph-t">Blank Page</span></div>
+                   <div style="position:absolute; bottom: 30px; left: 30px;"><button class="csend" onclick="unturnPage(${pageNum})">⬅ Prev Page</button></div>
+               </div>
+            </div>`;
+
+        html += `
+        <div class="page" id="p${pageNum}" style="z-index:${zIndex};">
+            <div class="face pbg">
+                <div class="psh"></div>
+                <div class="pi">
+                    <div class="ph" style="margin-bottom:20px;"><span class="ph-t">${pageData.title}</span></div>
+                    ${topicsHtml}
+                    ${nextBtn}
+                </div>
+            </div>
+            ${backFace}
+        </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+    window.totalDynamicPages = totalPages;
+};
+
+window.loginAttempts = 0; // reset after death
+            }, 4500); // Reset takes longer now
+        });
+        }, 4000); // Wait 3 seconds (1000ms scared + 3000ms crying) before ship fires
+    }
+}
 /* ====================================================================
    ASH PARTICLE BURST
    Creates small divs that fly outward from alien death point
@@ -2402,6 +2785,9 @@ const savedTheme = localStorage.getItem('nexus_theme');
 if (savedTheme) switchTheme(savedTheme);
 </script>
 <script>
+// Alien chat conversation history (separate from in-book Oracle)
+const alienChatHistory = [];
+
 document.addEventListener('DOMContentLoaded', () => {
     const chatInput = document.getElementById('alien-chat-input');
     const bubble = document.getElementById('alien-bubble');
@@ -2415,22 +2801,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 chatInput.value = '';
                 bubble.style.display = 'block';
-                bubbleText.innerHTML = '<span style="color:var(--text-dim);">Thinking...</span>';
+                bubbleText.innerHTML = '<span style="color:var(--gold);opacity:0.5;">● ● ●</span>';
+                document.getElementById('alien-wrap').style.bottom = '20%';
+
+                // Add to alien chat history
+                alienChatHistory.push({ role: 'user', content: msg });
 
                 try {
                     const res = await fetch('/api/chat', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ message: msg })
+                        body: JSON.stringify({ 
+                            message: msg,
+                            history: alienChatHistory.slice(-10)
+                        })
                     });
                     const data = await res.json();
                     if(data.success) {
-                        bubbleText.innerText = data.reply;
+                        bubbleText.innerHTML = data.reply;
+                        document.getElementById('alien-wrap').style.bottom = '28%';
+                        window.setAlienExpression('shock');
+                        setTimeout(() => window.setAlienExpression('normal'), 2500);
+                        // Add to history (strip HTML for context)
+                        const tmp = document.createElement('div');
+                        tmp.innerHTML = data.reply;
+                        alienChatHistory.push({ role: 'assistant', content: tmp.textContent || data.reply });
                     } else {
-                        bubbleText.innerText = 'Error: ' + data.message;
+                        bubbleText.innerHTML = '<span style="color:var(--red);">Oracle unavailable...</span>';
                     }
                 } catch(err) {
-                    bubbleText.innerText = 'Connection lost...';
+                    bubbleText.innerHTML = '<span style="color:var(--red);">Neural link lost...</span>';
                 }
             }
         });
