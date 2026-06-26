@@ -2174,8 +2174,8 @@ window.setTheme = function(theme) {
     }
     localStorage.setItem('nexus_theme', theme);
 };
-const savedTheme = localStorage.getItem('nexus_theme');
-if(savedTheme) window.setTheme(savedTheme);
+const initialTheme = localStorage.getItem('nexus_theme');
+if(initialTheme) window.setTheme(initialTheme);
 
 // AI GENERATOR
 window.generateTome = async function() {
@@ -2557,8 +2557,8 @@ function switchTheme(name) {
     if (window.updateStarfieldTheme) window.updateStarfieldTheme(name);
     localStorage.setItem('nexus_theme', name);
 }
-const savedTheme = localStorage.getItem('nexus_theme');
-if (savedTheme) switchTheme(savedTheme);
+const oldSavedTheme = localStorage.getItem('nexus_theme');
+if (oldSavedTheme) switchTheme(oldSavedTheme);
 </script>
 <script>
 // Alien chat conversation history (separate from in-book Oracle)
