@@ -385,70 +385,84 @@ body {
 
 /* COVER */
 .cover {
-    background: linear-gradient(158deg, #5e1020 0%, #3d0715 26%, #170410 56%, #08010c 100%);
-    box-shadow: 6px 0 22px rgba(0, 0, 0, 0.9), inset -2px 0 8px rgba(0, 0, 0, 0.6);
+    background-color: #3d0715;
+    background-image: 
+        radial-gradient(circle at center, rgba(160,32,58,0.15) 0%, rgba(61,7,21,1) 90%),
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.12'/%3E%3C/svg%3E");
+    box-shadow: 8px 0 25px rgba(0, 0, 0, 0.95), inset -4px 0 15px rgba(0, 0, 0, 0.8), inset 0 0 80px rgba(0, 0, 0, 0.6);
 }
 
 .ctx {
     position: absolute;
     inset: 0;
     pointer-events: none;
-    background-image: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0, 0, 0, 0.04) 3px, rgba(0, 0, 0, 0.04) 4px),
-        repeating-linear-gradient(90deg, transparent, transparent 22px, rgba(255, 255, 255, 0.008) 22px, rgba(255, 255, 255, 0.008) 23px);
+    background-image: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0, 0, 0, 0.06) 3px, rgba(0, 0, 0, 0.06) 4px);
 }
 
+/* Ornate Gold Frame */
 .cfr {
     position: absolute;
-    top: 12px;
-    left: 12px;
-    right: 12px;
-    bottom: 12px;
-    border: 1px solid rgba(201, 168, 76, 0.3);
+    top: 20px;
+    left: 20px;
+    right: 20px;
+    bottom: 20px;
+    border: 2px solid var(--gold);
+    border-radius: 4px;
+    box-shadow: 0 0 15px rgba(201, 168, 76, 0.15), inset 0 0 15px rgba(201, 168, 76, 0.15);
 }
 
 .cfr::before {
     content: '';
     position: absolute;
-    top: 5px;
-    left: 5px;
-    right: 5px;
-    bottom: 5px;
-    border: 1px solid rgba(201, 168, 76, 0.09);
+    top: 6px;
+    left: 6px;
+    right: 6px;
+    bottom: 6px;
+    border: 1px solid rgba(201, 168, 76, 0.5);
+    border-radius: 2px;
 }
 
-.cfr::after {
-    content: '✦';
+/* Embroidery Corners */
+.cfr-tl, .cfr-tr, .cfr-bl, .cfr-br {
     position: absolute;
-    top: -8px;
-    left: -8px;
-    font-size: clamp(0.56rem, 0.75vw, 0.92rem);
-    color: rgba(201, 168, 76, 0.5);
+    width: 45px;
+    height: 45px;
+    border: 3px solid var(--gold-bright);
+    box-shadow: 0 0 10px rgba(201, 168, 76, 0.4);
 }
-
-.cfr-br {
-    position: absolute;
-    bottom: -8px;
-    right: -8px;
-    font-size: clamp(0.56rem, 0.75vw, 0.92rem);
-    color: rgba(201, 168, 76, 0.32);
+.cfr-tl {
+    top: -8px; left: -8px;
+    border-right: none; border-bottom: none;
+    border-radius: 12px 0 0 0;
 }
-
 .cfr-tr {
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    font-size: clamp(0.56rem, 0.75vw, 0.92rem);
-    color: rgba(201, 168, 76, 0.32);
+    top: -8px; right: -8px;
+    border-left: none; border-bottom: none;
+    border-radius: 0 12px 0 0;
 }
-
 .cfr-bl {
-    position: absolute;
-    bottom: -8px;
-    left: -8px;
-    font-size: clamp(0.56rem, 0.75vw, 0.92rem);
-    color: rgba(201, 168, 76, 0.32);
+    bottom: -8px; left: -8px;
+    border-right: none; border-top: none;
+    border-radius: 0 0 0 12px;
+}
+.cfr-br {
+    bottom: -8px; right: -8px;
+    border-left: none; border-top: none;
+    border-radius: 0 0 12px 0;
 }
 
+/* Fleur-de-lis corner accents */
+.cfr-tl::after, .cfr-tr::after, .cfr-bl::after, .cfr-br::after {
+    content: '⚜';
+    position: absolute;
+    font-size: 1.6rem;
+    color: var(--gold-bright);
+    text-shadow: 0 0 8px rgba(201, 168, 76, 0.6);
+}
+.cfr-tl::after { top: 4px; left: 6px; }
+.cfr-tr::after { top: 4px; right: 6px; }
+.cfr-bl::after { bottom: 4px; left: 6px; }
+.cfr-br::after { bottom: 4px; right: 6px; }
 .cin {
     position: relative;
     z-index: 2;
@@ -1689,7 +1703,7 @@ body.theme-emerald {
     <input type="text" id="alien-chat-input" placeholder="Ask Cutie Pie..." style="width: 200px; padding: 8px 12px; background: rgba(0,0,0,0.6); border: 1px solid rgba(201,168,76,0.3); border-radius: 20px; color: var(--gold); outline: none; font-family: 'Inter', sans-serif; font-size: 0.8rem;  pointer-events: auto; transition: all 0.3s ease; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
 </div>
 <div id="alien-wrap">
-<div id="alien-body"><svg viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg" width="90" height="90"><!-- Body --><ellipse cx="45" cy="58" rx="20" ry="22" fill="#5dde8a" opacity="0.95" /><!-- Belly shine --><ellipse cx="45" cy="60" rx="10" ry="12" fill="#80eea8" opacity="0.4" /><!-- Head --><ellipse cx="45" cy="34" rx="22" ry="20" fill="#5dde8a" /><!-- Head shine --><ellipse cx="38" cy="26" rx="7" ry="5" fill="#a0f0c0" opacity="0.4" /><!-- Left big eye --><ellipse cx="35" cy="32" rx="9" ry="10" fill="white" /><ellipse id="alien-eye-l" cx="35" cy="33" rx="6" ry="7" fill="#1a1a3a" /><ellipse cx="33" cy="31" rx="2" ry="2.5" fill="white" opacity="0.8" /><!-- Right big eye --><ellipse cx="55" cy="32" rx="9" ry="10" fill="white" /><ellipse id="alien-eye-r" cx="55" cy="33" rx="6" ry="7" fill="#1a1a3a" /><ellipse cx="53" cy="31" rx="2" ry="2.5" fill="white" opacity="0.8" /><!-- Smile --><path id="alien-mouth" d="M38 46 Q45 52 52 46" stroke="#2a8050" stroke-width="2" fill="none" stroke-linecap="round" /><!-- Antennae left --><line x1="34" y1="14" x2="28" y2="4" stroke="#5dde8a" stroke-width="2.5" stroke-linecap="round" /><circle cx="27" cy="3" r="3" fill="#ff80ff" /><!-- Antennae right --><line x1="56" y1="14" x2="62" y2="4" stroke="#5dde8a" stroke-width="2.5" stroke-linecap="round" /><circle cx="63" cy="3" r="3" fill="#ff80ff" /><!-- Left arm --><path d="M26 56 Q16 62 18 70" stroke="#5dde8a" stroke-width="5" fill="none" stroke-linecap="round" /><circle cx="18" cy="71" r="4" fill="#5dde8a" /><!-- Right arm --><path d="M64 56 Q74 62 72 70" stroke="#5dde8a" stroke-width="5" fill="none" stroke-linecap="round" /><circle cx="72" cy="71" r="4" fill="#5dde8a" /><!-- Left leg --><path d="M38 78 Q35 86 32 88" stroke="#5dde8a" stroke-width="5" fill="none" stroke-linecap="round" /><ellipse cx="30" cy="88" rx="5" ry="2.5" fill="#4ab870" /><!-- Right leg --><path d="M52 78 Q55 86 58 88" stroke="#5dde8a" stroke-width="5" fill="none" stroke-linecap="round" /><ellipse cx="60" cy="88" rx="5" ry="2.5" fill="#4ab870" /><!-- Spots --><circle cx="40" cy="62" r="2" fill="#4ab870" opacity="0.6" /><circle cx="50" cy="65" r="1.5" fill="#4ab870" opacity="0.6" /><circle cx="45" cy="68" r="1.5" fill="#4ab870" opacity="0.6" /></svg></div><div id="alien-label">Cutie Pie</div></div><div class="hc" id="hc1"></div><div class="hc" id="hc2"></div><div class="hc" id="hc3"></div><div class="hc" id="hc4"></div><div id="hud-top"><div class="hl"></div><div class="ht">THE BOOK!! · </div><div class="hl r"></div></div><div id="hud-bot"><div class="hs"><span class="hdot"></span>System Online</div><div class="hs">Scholar · Scholar IV</div><div class="hs"></div><div class="hs">JWT · AES-256 · Active</div></div><!-- BOOK --><div id="scene"><div id="book" class="idle"><!-- ══════════════════════════════════════════════════ PAGE 0 — COVER (front)+MODULE 1 LEFT (back) Module 1: Authentication & Identity ══════════════════════════════════════════════════ --><div class="page" id="p0" style="z-index:10;"><!-- COVER FRONT --><div class="face cover"><div class="ctx"></div><div class="cfr"><span class="cfr-br">✦</span><span class="cfr-tr">✦</span><span class="cfr-bl">✦</span></div><div class="psh"></div><div class="cin"><div class="crest"><span class="crest-n">N</span></div><div class="ctit">THE BOOK!!</div><div class="csub"></div><div class="cedt"></div><div class="cln"></div><div class="team-badge"></div><div class="la"><div class="fw"><div class="fl">Scholar Identifier</div><input class="ui" type="text" value="ADMIN"></div><div class="fw"><div class="fl">Access Cipher</div><input class="ui" type="password" placeholder="Enter password…"></div><button class="btu" id="unlockBtn" onclick="checkPassword()">✦ Unlock Tome ✦</button><div class="cln2"></div><div style="font-size:0.46rem;color:rgba(201,168,76,0.22);text-align:center;margin-top:8px;letter-spacing:0.13em;">SECURED · AES-256 · JWT PROTOCOL</div></div></div></div><!-- MODULE 1 — LEFT PAGE --><div class="face back pbg">
+<div id="alien-body"><svg viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg" width="90" height="90"><!-- Body --><ellipse cx="45" cy="58" rx="20" ry="22" fill="#5dde8a" opacity="0.95" /><!-- Belly shine --><ellipse cx="45" cy="60" rx="10" ry="12" fill="#80eea8" opacity="0.4" /><!-- Head --><ellipse cx="45" cy="34" rx="22" ry="20" fill="#5dde8a" /><!-- Head shine --><ellipse cx="38" cy="26" rx="7" ry="5" fill="#a0f0c0" opacity="0.4" /><!-- Left big eye --><ellipse cx="35" cy="32" rx="9" ry="10" fill="white" /><ellipse id="alien-eye-l" cx="35" cy="33" rx="6" ry="7" fill="#1a1a3a" /><ellipse cx="33" cy="31" rx="2" ry="2.5" fill="white" opacity="0.8" /><!-- Right big eye --><ellipse cx="55" cy="32" rx="9" ry="10" fill="white" /><ellipse id="alien-eye-r" cx="55" cy="33" rx="6" ry="7" fill="#1a1a3a" /><ellipse cx="53" cy="31" rx="2" ry="2.5" fill="white" opacity="0.8" /><!-- Smile --><path id="alien-mouth" d="M38 46 Q45 52 52 46" stroke="#2a8050" stroke-width="2" fill="none" stroke-linecap="round" /><!-- Antennae left --><line x1="34" y1="14" x2="28" y2="4" stroke="#5dde8a" stroke-width="2.5" stroke-linecap="round" /><circle cx="27" cy="3" r="3" fill="#ff80ff" /><!-- Antennae right --><line x1="56" y1="14" x2="62" y2="4" stroke="#5dde8a" stroke-width="2.5" stroke-linecap="round" /><circle cx="63" cy="3" r="3" fill="#ff80ff" /><!-- Left arm --><path d="M26 56 Q16 62 18 70" stroke="#5dde8a" stroke-width="5" fill="none" stroke-linecap="round" /><circle cx="18" cy="71" r="4" fill="#5dde8a" /><!-- Right arm --><path d="M64 56 Q74 62 72 70" stroke="#5dde8a" stroke-width="5" fill="none" stroke-linecap="round" /><circle cx="72" cy="71" r="4" fill="#5dde8a" /><!-- Left leg --><path d="M38 78 Q35 86 32 88" stroke="#5dde8a" stroke-width="5" fill="none" stroke-linecap="round" /><ellipse cx="30" cy="88" rx="5" ry="2.5" fill="#4ab870" /><!-- Right leg --><path d="M52 78 Q55 86 58 88" stroke="#5dde8a" stroke-width="5" fill="none" stroke-linecap="round" /><ellipse cx="60" cy="88" rx="5" ry="2.5" fill="#4ab870" /><!-- Spots --><circle cx="40" cy="62" r="2" fill="#4ab870" opacity="0.6" /><circle cx="50" cy="65" r="1.5" fill="#4ab870" opacity="0.6" /><circle cx="45" cy="68" r="1.5" fill="#4ab870" opacity="0.6" /></svg></div><div id="alien-label">Cutie Pie</div></div><div class="hc" id="hc1"></div><div class="hc" id="hc2"></div><div class="hc" id="hc3"></div><div class="hc" id="hc4"></div><div id="hud-top"><div class="hl"></div><div class="ht">THE BOOK!! · </div><div class="hl r"></div></div><div id="hud-bot"><div class="hs"><span class="hdot"></span>System Online</div><div class="hs">Scholar · Scholar IV</div><div class="hs"></div><div class="hs">JWT · AES-256 · Active</div></div><!-- BOOK --><div id="scene"><div id="book" class="idle"><!-- ══════════════════════════════════════════════════ PAGE 0 — COVER (front)+MODULE 1 LEFT (back) Module 1: Authentication & Identity ══════════════════════════════════════════════════ --><div class="page" id="p0" style="z-index:10;"><!-- COVER FRONT --><div class="face cover"><div class="ctx"></div><div class="cfr"><span class="cfr-tl"></span><span class="cfr-tr"></span><span class="cfr-bl"></span><span class="cfr-br"></span></div><div class="psh"></div><div class="cin"><div class="crest" style="width:55px; height:55px; border-radius: 50%; border: 2px dashed var(--gold);"><span class="crest-n" style="font-size:1.8rem; rotate:45deg;">⚜</span></div><div class="ctit">THE BOOK!!</div><div class="csub"></div><div class="cedt"></div><div class="cln"></div><div class="team-badge"></div><div class="la"><div class="fw"><div class="fl">Scholar Identifier</div><input class="ui" type="text" value="ADMIN"></div><div class="fw"><div class="fl">Access Cipher</div><input class="ui" type="password" placeholder="Enter password…"></div><button class="btu" id="unlockBtn" onclick="checkPassword()">✦ Unlock Tome ✦</button><div class="cln2"></div><div style="font-size:0.46rem;color:rgba(201,168,76,0.22);text-align:center;margin-top:8px;letter-spacing:0.13em;">SECURED · AES-256 · JWT PROTOCOL</div></div></div></div><!-- MODULE 1 — LEFT PAGE --><div class="face back pbg">
     <div class="psh-r"></div>
     <div class="pi">
         <div class="ph">
@@ -1815,7 +1829,7 @@ body.theme-emerald {
             </div>
             <div class="face back cover">
                 <div class="ctx"></div>
-                <div class="cfr"><span class="cfr-br">♦</span><span class="cfr-tr">♦</span><span class="cfr-bl">♦</span></div>
+                <div class="cfr"><span class="cfr-tl"></span><span class="cfr-tr"></span><span class="cfr-bl"></span><span class="cfr-br"></span></div>
                 <div class="psh-r"></div>
                 <div class="cin">
                     <div class="crest"><span class="crest-n">★</span></div>
